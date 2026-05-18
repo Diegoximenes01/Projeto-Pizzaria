@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pizza_backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development # Para desenvolvimento local (se quiser testar prod use production)
+      - PORT=4000
+      - DB_HOST=postgres-db
+      - DB_USER=pizza_user
+      - DB_PASSWORD=pizza_pass
+      - DB_NAME=pizza_db
+    depends_on:
+      - postgres-db
+    networks:
+      - pizza_network
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: pizza_postgres
+    environment:
+      - POSTGRES_USER=pizza_user
+      - POSTGRES_PASSWORD=pizza_pass
+      - POSTGRES_DB=pizza_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pizza_network
+
+volumes:
+  pgdata:
+
+networks:
+  pizza_network:
+    driver: bridge

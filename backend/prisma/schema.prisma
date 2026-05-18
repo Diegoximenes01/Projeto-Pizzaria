@@ -1,0 +1,48 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id       String   @id @default(uuid())
+  nome     String
+  cpf      String   @unique
+  senha    String
+  endereco String
+  pedidos  Pedido[]
+}
+
+model Pizza {
+  id           String       @id @default(uuid())
+  nome         String
+  preco        Float
+  ingredientes String[]
+  pedidoItens  PedidoItem[]
+}
+
+model PedidoItem {
+  id         String @id @default(uuid())
+  quantidade Int
+  pizzaId    String
+  pedidoId   String
+  pizza      Pizza  @relation(fields: [pizzaId], references: [id])
+  pedido     Pedido @relation(fields: [pedidoId], references: [id])
+}
+
+model Pedido {
+  id            String       @id @default(uuid())
+  total         Float
+  status        String
+  tipoEntrega   String       @default("Retirada") // Entrega ou Retirada
+  taxaEntrega   Float        @default(0.0)
+  tipoPagamento String       @default("Dinheiro") // Cartão, Pix, Dinheiro
+  trocoPara     Float?
+  usuarioId     String?
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id])
+  itens         PedidoItem[]
+}

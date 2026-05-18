@@ -1,0 +1,55 @@
+type Usuario {
+  id: ID!
+  nome: String!
+  cpf: String!
+  endereco: String!
+}
+
+type Pizza {
+  id: ID!
+  nome: String!
+  preco: Float!
+  ingredientes: [String!]!
+}
+
+type PedidoItem {
+  pizza: Pizza!
+  quantidade: Int!
+}
+
+type Pedido {
+  id: ID!
+  itens: [PedidoItem!]!
+  total: Float!
+  status: String!
+  tipoEntrega: String
+  taxaEntrega: Float
+  tipoPagamento: String
+  trocoPara: Float
+  usuario: Usuario
+}
+
+input PedidoItemInput {
+  pizzaId: ID!
+  quantidade: Int!
+}
+
+type Query {
+  pizzas: [Pizza!]!
+  pizza(id: ID!): Pizza
+  pedidos: [Pedido!]!
+  pedido(id: ID!): Pedido
+  login(cpf: String!, senha: String!): Usuario
+}
+
+type Mutation {
+  cadastrarUsuario(nome: String!, cpf: String!, senha: String!, endereco: String!): Usuario!
+  criarPedido(
+    itens: [PedidoItemInput!]!
+    usuarioId: ID
+    tipoEntrega: String
+    taxaEntrega: Float
+    tipoPagamento: String
+    trocoPara: Float
+  ): Pedido!
+}
