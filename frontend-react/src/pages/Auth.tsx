@@ -8,6 +8,7 @@ const LOGIN = gql`
     login(cpf: $cpf, senha: $senha) {
       id
       nome
+      cpf
       endereco
     }
   }
@@ -18,6 +19,7 @@ const CADASTRAR = gql`
     cadastrarUsuario(nome: $nome, cpf: $cpf, senha: $senha, endereco: $endereco) {
       id
       nome
+      cpf
       endereco
     }
   }

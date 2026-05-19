@@ -11,6 +11,7 @@ export interface CartItem {
 export interface User {
   id: string;
   nome: string;
+  cpf: string;
   endereco: string;
 }
 

@@ -43,6 +43,15 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
             />
           </div>
           <div>
+            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>CPF (Não alterável)</label>
+            <input 
+              type="text" 
+              value={user.cpf} 
+              disabled
+              style={{ ...inputStyle, width: '100%', backgroundColor: '#f5f5f5', color: '#999', cursor: 'not-allowed' }}
+            />
+          </div>
+          <div>
             <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Endereço de Entrega</label>
             <input 
               type="text" 
