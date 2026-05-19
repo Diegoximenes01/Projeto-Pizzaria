@@ -7,26 +7,114 @@ import Delivery from './pages/Delivery';
 import Payment from './pages/Payment';
 import Success from './pages/Success';
 import { ShoppingCart } from 'lucide-react';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { StoreContext } from './context/StoreContext';
+
+function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const { user, setUser } = useContext(StoreContext);
+  const [nome, setNome] = useState(user?.nome || '');
+  const [endereco, setEndereco] = useState(user?.endereco || '');
+
+  if (!isOpen || !user) return null;
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setUser({
+      ...user,
+      nome,
+      endereco
+    });
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: 24 }}>
+        <h2 className="modal-title" style={{ fontSize: 20, marginBottom: 20 }}>Editar Informações</h2>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Nome Completo</label>
+            <input 
+              type="text" 
+              value={nome} 
+              onChange={e => setNome(e.target.value)} 
+              required 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Endereço de Entrega</label>
+            <input 
+              type="text" 
+              value={endereco} 
+              onChange={e => setEndereco(e.target.value)} 
+              required 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12, justifyContent: 'flex-end' }}>
+            <button type="button" onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid #ccc', background: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+            <button type="submit" className="add-btn" style={{ minWidth: 'auto', padding: '10px 20px' }}>Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 function Header() {
   const navigate = useNavigate();
-  const { cart } = useContext(StoreContext);
+  const { cart, user, setUser } = useContext(StoreContext);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const totalItems = cart.reduce((acc, curr) => acc + curr.quantidade, 0);
+
+  const handleLogout = () => {
+    setUser(null);
+    navigate('/');
+  };
 
   return (
     <header className="header">
       <div className="logo" onClick={() => navigate('/')} style={{cursor: 'pointer'}}>
-        🍕 Furreti Cucina
+        🍕 Furetti Cucina
       </div>
-      <button className="cart-button" onClick={() => navigate('/carrinho')}>
-        <ShoppingCart size={20} style={{marginRight: 8, verticalAlign: 'middle'}}/>
-        Carrinho ({totalItems})
-      </button>
+      
+      <div className="header-actions">
+        {user ? (
+          <div className="user-menu-container">
+            <span className="user-menu-trigger">Olá, <strong>{user.nome}</strong></span>
+            <div className="user-dropdown">
+              <button className="dropdown-item" onClick={() => setIsEditOpen(true)}>Editar Informações</button>
+              <button className="dropdown-item logout" onClick={handleLogout}>Sair</button>
+            </div>
+            <EditProfileModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} />
+          </div>
+        ) : (
+          <div className="auth-buttons">
+            <button className="auth-btn login" onClick={() => navigate('/auth', { state: { signup: false } })}>
+              Login
+            </button>
+            <button className="auth-btn signup" onClick={() => navigate('/auth', { state: { signup: true } })}>
+              Cadastre-se
+            </button>
+          </div>
+        )}
+        
+        <button className="cart-button" onClick={() => navigate('/carrinho')}>
+          <ShoppingCart size={20} style={{marginRight: 8, verticalAlign: 'middle'}}/>
+          Carrinho ({totalItems})
+        </button>
+      </div>
     </header>
   );
 }
+
+const inputStyle = {
+  padding: '12px 16px',
+  borderRadius: 8,
+  border: '1px solid #ccc',
+  fontSize: 16
+};
 
 function App() {
   return (

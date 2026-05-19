@@ -9,13 +9,22 @@ const GET_PIZZAS = gql`
       nome
       preco
       ingredientes
+      categoria
     }
   }
 `;
 
-const getImageForPizza = (index: number) => {
-  const images = ['/pizza1.png', '/pizza2.png', '/pizza3.png'];
-  return images[index % images.length];
+const getImageForPizza = (pizza: any, index: number) => {
+  if (pizza.nome === 'Mussarela') return '/pizza-queijo.png';
+  if (pizza.nome === 'Frango com Catupiry') return '/pizza-catupiryfrango.png';
+  if (pizza.nome === 'Portuguesa') return '/pizza-portuguesa.png';
+  if (pizza.nome === 'Calabresa') return '/pizza-calabresa.png';
+  if (pizza.nome === 'Marguerita') return '/pizza-marguerita.png';
+  if (pizza.nome === '4 Queijos') return '/pizza-4Queijos.png';
+  if (pizza.nome === 'Carne de Sol com Queijo Coalho') return '/pizza-carne-de-sol.jpg'; 
+  if (pizza.nome === 'Pepperoni com Catupiry') return '/pizza-pepperoni.jpg';
+  
+  return '/pizza-queijo.png'; // Fallback geral seguro
 };
 
 export default function Home() {
@@ -44,18 +53,21 @@ export default function Home() {
         quantidade: quantity, 
         nome: selectedPizza.nome, 
         preco: selectedPizza.preco,
-        imgUrl: getImageForPizza(selectedPizza.imgIndex)
+        imgUrl: getImageForPizza(selectedPizza, selectedPizza.imgIndex)
       }]);
     }
     setSelectedPizza(null);
   };
 
-  return (
-    <>
-      <h2 className="section-title">Nosso Cardápio</h2>
-      <div className="pizza-grid">
-        {data.pizzas.map((pizza: any, index: number) => (
-          <div key={pizza.id} className="pizza-card" onClick={() => openModal({...pizza, imgIndex: index})}>
+  const tradicionais = data?.pizzas.filter((p: any) => p.categoria === 'Tradicional') || [];
+  const especiais = data?.pizzas.filter((p: any) => p.categoria === 'Especial') || [];
+
+  const renderPizzaGrid = (pizzas: any[], offsetIndex: number) => (
+    <div className="pizza-grid">
+      {pizzas.map((pizza: any, index: number) => {
+        const imgIndex = offsetIndex + index;
+        return (
+          <div key={pizza.id} className="pizza-card" onClick={() => openModal({...pizza, imgIndex})}>
             <div className="card-info">
               <h3 className="card-title">{pizza.nome}</h3>
               <p className="card-desc">{pizza.ingredientes.join(', ')}</p>
@@ -63,15 +75,25 @@ export default function Home() {
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pizza.preco)}
               </div>
             </div>
-            <img src={getImageForPizza(index)} alt={pizza.nome} className="card-image" />
+            <img src={getImageForPizza(pizza, imgIndex)} alt={pizza.nome} className="card-image" />
           </div>
-        ))}
-      </div>
+        )
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      <h2 className="section-title" style={{marginTop: 30}}>Pizzas Tradicionais</h2>
+      {renderPizzaGrid(tradicionais, 0)}
+
+      <h2 className="section-title" style={{marginTop: 30}}>Pizzas Especiais</h2>
+      {renderPizzaGrid(especiais, tradicionais.length)}
 
       {selectedPizza && (
         <div className="modal-overlay" onClick={() => setSelectedPizza(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <img src={getImageForPizza(selectedPizza.imgIndex)} alt={selectedPizza.nome} className="modal-header-img" />
+            <img src={getImageForPizza(selectedPizza, selectedPizza.imgIndex)} alt={selectedPizza.nome} className="modal-header-img" />
             <div className="modal-body">
               <h2 className="modal-title">{selectedPizza.nome}</h2>
               <p className="modal-desc">{selectedPizza.ingredientes.join(', ')}</p>

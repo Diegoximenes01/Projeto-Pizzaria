@@ -15,6 +15,7 @@ services:
       - DB_USER=pizza_user
       - DB_PASSWORD=pizza_pass
       - DB_NAME=pizza_db
+      - DATABASE_URL=postgresql://pizza_user:pizza_pass@postgres-db:5432/pizza_db?schema=public
     depends_on:
       - postgres-db
     networks:

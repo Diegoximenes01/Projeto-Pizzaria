@@ -10,6 +10,7 @@ type Pizza {
   nome: String!
   preco: Float!
   ingredientes: [String!]!
+  categoria: String!
 }
 
 type PedidoItem {

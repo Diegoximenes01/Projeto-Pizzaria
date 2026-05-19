@@ -22,6 +22,7 @@ model Pizza {
   nome         String
   preco        Float
   ingredientes String[]
+  categoria    String       @default("Tradicional")
   pedidoItens  PedidoItem[]
 }
 

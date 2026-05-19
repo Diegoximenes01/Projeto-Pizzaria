@@ -1,7 +1,7 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useMutation, gql, useApolloClient } from '@apollo/client';
 import { StoreContext } from '../context/StoreContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const LOGIN = gql`
   query Login($cpf: String!, $senha: String!) {
@@ -24,6 +24,7 @@ const CADASTRAR = gql`
 `;
 
 export default function Auth() {
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const { setUser } = useContext(StoreContext);
   const navigate = useNavigate();
@@ -31,6 +32,12 @@ export default function Auth() {
   
   const [formData, setFormData] = useState({ cpf: '', senha: '', confirmarSenha: '', nome: '', endereco: '' });
   const [cadastrar] = useMutation(CADASTRAR);
+
+  useEffect(() => {
+    if (location.state && typeof (location.state as any).signup === 'boolean') {
+      setIsLogin(!(location.state as any).signup);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -67,9 +74,10 @@ export default function Auth() {
         <input 
           placeholder="CPF (Apenas números)" 
           required 
+          maxLength={11}
           value={formData.cpf} 
           onChange={e => {
-            const apenasNumeros = e.target.value.replace(/[^0-9]/g, '');
+            const apenasNumeros = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
             setFormData({...formData, cpf: apenasNumeros});
           }} 
           style={inputStyle} 

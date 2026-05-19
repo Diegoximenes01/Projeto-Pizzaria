@@ -30,6 +30,10 @@ COPY package*.json ./
 # Instala apenas dependências de produção
 RUN npm install --only=production
 
+# Copia a pasta prisma e gera o client
+COPY prisma ./prisma
+RUN npx prisma generate
+
 # Copia os arquivos compilados do estágio anterior
 COPY --from=builder /usr/src/app/dist ./dist
 
