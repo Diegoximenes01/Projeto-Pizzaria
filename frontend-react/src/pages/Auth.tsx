@@ -90,13 +90,6 @@ export default function Auth() {
           <input placeholder="Confirmar Senha" type="password" required value={formData.confirmarSenha} onChange={e => setFormData({...formData, confirmarSenha: e.target.value})} style={inputStyle} />
         )}
 
-        {!isLogin && (
-          <div style={{marginTop: 8, paddingTop: 16, borderTop: '1px solid #eee'}}>
-            <h3 style={{fontSize: 14, color: '#666', marginBottom: 12}}>Local de Entrega</h3>
-            <input placeholder="Endereço de Entrega" required value={formData.endereco} onChange={e => setFormData({...formData, endereco: e.target.value})} style={{...inputStyle, width: '100%'}} />
-          </div>
-        )}
-        
         <button type="submit" className="add-btn" style={{width: '100%', justifyContent: 'center', marginTop: 8}}>
           {isLogin ? 'Entrar' : 'Cadastrar'}
         </button>

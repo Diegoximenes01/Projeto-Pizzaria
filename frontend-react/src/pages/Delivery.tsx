@@ -6,7 +6,7 @@ export default function Delivery() {
   const { user, setUser, orderDetails, setOrderDetails } = useContext(StoreContext);
   const navigate = useNavigate();
 
-  const [addressOption, setAddressOption] = useState<'registered' | 'custom'>('registered');
+  const [addressOption, setAddressOption] = useState<'registered' | 'custom'>(user?.endereco ? 'registered' : 'custom');
   const [customAddress, setCustomAddress] = useState('');
   
   useEffect(() => {
@@ -51,29 +51,31 @@ export default function Delivery() {
         
         <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
           {/* Registered Address Option */}
-          <label style={{
-            display: 'flex', 
-            alignItems: 'flex-start', 
-            gap: 12, 
-            padding: 16, 
-            borderRadius: 8, 
-            border: '1px solid',
-            borderColor: addressOption === 'registered' ? 'var(--primary)' : '#eee',
-            cursor: 'pointer',
-            background: addressOption === 'registered' ? '#fff9f9' : '#fff'
-          }}>
-            <input 
-              type="radio" 
-              name="addressOption" 
-              checked={addressOption === 'registered'}
-              onChange={() => setAddressOption('registered')}
-              style={{marginTop: 4}}
-            />
-            <div>
-              <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado</strong>
-              <span style={{fontSize: 14, color: '#555'}}>{user.endereco}</span>
-            </div>
-          </label>
+          {user.endereco && (
+            <label style={{
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              gap: 12, 
+              padding: 16, 
+              borderRadius: 8, 
+              border: '1px solid',
+              borderColor: addressOption === 'registered' ? 'var(--primary)' : '#eee',
+              cursor: 'pointer',
+              background: addressOption === 'registered' ? '#fff9f9' : '#fff'
+            }}>
+              <input 
+                type="radio" 
+                name="addressOption" 
+                checked={addressOption === 'registered'}
+                onChange={() => setAddressOption('registered')}
+                style={{marginTop: 4}}
+              />
+              <div>
+                <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado</strong>
+                <span style={{fontSize: 14, color: '#555'}}>{user.endereco}</span>
+              </div>
+            </label>
+          )}
 
           {/* Custom Address Option */}
           <label style={{
