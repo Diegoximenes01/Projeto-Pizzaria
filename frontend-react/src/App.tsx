@@ -7,7 +7,7 @@ import Delivery from './pages/Delivery';
 import Payment from './pages/Payment';
 import Success from './pages/Success';
 import { ShoppingCart } from 'lucide-react';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { StoreContext } from './context/StoreContext';
 
 function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -66,12 +66,26 @@ function Header() {
   const navigate = useNavigate();
   const { cart, user, setUser } = useContext(StoreContext);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+  
   const totalItems = cart.reduce((acc, curr) => acc + curr.quantidade, 0);
 
   const handleLogout = () => {
     setUser(null);
     navigate('/');
   };
+
+  useEffect(() => {
+    const closeMenu = () => {
+      setIsClicked(false);
+    };
+    document.addEventListener('click', closeMenu);
+    return () => document.removeEventListener('click', closeMenu);
+  }, []);
+
+  const isMenuOpen = isHovered || isClicked;
 
   return (
     <header className="header">
@@ -81,10 +95,22 @@ function Header() {
       
       <div className="header-actions">
         {user ? (
-          <div className="user-menu-container">
-            <span className="user-menu-trigger">Olá, <strong>{user.nome}</strong></span>
-            <div className="user-dropdown">
-              <button className="dropdown-item" onClick={() => setIsEditOpen(true)}>Editar Informações</button>
+          <div 
+            className="user-menu-container"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <span 
+              className="user-menu-trigger"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsClicked(!isClicked);
+              }}
+            >
+              Olá, <strong>{user.nome}</strong>
+            </span>
+            <div className={`user-dropdown ${isMenuOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
+              <button className="dropdown-item" onClick={() => { setIsEditOpen(true); setIsClicked(false); }}>Editar Informações</button>
               <button className="dropdown-item logout" onClick={handleLogout}>Sair</button>
             </div>
             <EditProfileModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} />
