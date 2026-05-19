@@ -14,7 +14,7 @@ const GET_PIZZAS = gql`
   }
 `;
 
-const getImageForPizza = (pizza: any, index: number) => {
+const getImageForPizza = (pizza: any) => {
   if (pizza.nome === 'Mussarela') return '/pizza-queijo.png';
   if (pizza.nome === 'Frango com Catupiry') return '/pizza-catupiryfrango.png';
   if (pizza.nome === 'Portuguesa') return '/pizza-portuguesa.png';
@@ -53,7 +53,7 @@ export default function Home() {
         quantidade: quantity, 
         nome: selectedPizza.nome, 
         preco: selectedPizza.preco,
-        imgUrl: getImageForPizza(selectedPizza, selectedPizza.imgIndex)
+        imgUrl: getImageForPizza(selectedPizza)
       }]);
     }
     setSelectedPizza(null);
@@ -75,7 +75,7 @@ export default function Home() {
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pizza.preco)}
               </div>
             </div>
-            <img src={getImageForPizza(pizza, imgIndex)} alt={pizza.nome} className="card-image" />
+            <img src={getImageForPizza(pizza)} alt={pizza.nome} className="card-image" />
           </div>
         )
       })}
@@ -93,7 +93,7 @@ export default function Home() {
       {selectedPizza && (
         <div className="modal-overlay" onClick={() => setSelectedPizza(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <img src={getImageForPizza(selectedPizza, selectedPizza.imgIndex)} alt={selectedPizza.nome} className="modal-header-img" />
+            <img src={getImageForPizza(selectedPizza)} alt={selectedPizza.nome} className="modal-header-img" />
             <div className="modal-body">
               <h2 className="modal-title">{selectedPizza.nome}</h2>
               <p className="modal-desc">{selectedPizza.ingredientes.join(', ')}</p>
