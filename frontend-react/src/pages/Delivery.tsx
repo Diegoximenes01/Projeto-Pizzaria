@@ -175,7 +175,7 @@ export default function Delivery() {
               background: orderDetails.tipoEntrega === 'Entrega' ? '#fff9f9' : '#fff'
             }}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <span style={{fontWeight: 600, fontSize: 16}}>Motoboy (Entrega)</span>
+              <span style={{fontWeight: 600, fontSize: 16}}>Entregador (Entrega)</span>
               <span style={{color: 'var(--primary)', fontWeight: 600}}>R$ 5,00</span>
             </div>
             <div style={{color: 'var(--text-muted)', fontSize: 13, marginTop: 4}}>Tempo estimado: 40 min</div>
