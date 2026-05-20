@@ -19,7 +19,9 @@ export default function Delivery() {
 
   const [atualizarEnderecos] = useMutation(ATUALIZAR_ENDERECOS);
 
-  const addressList = user?.enderecos && user.enderecos.length > 0 ? user.enderecos : (user?.endereco ? [user.endereco] : []);
+  const addressList = user?.enderecos && user.enderecos.length > 0 
+    ? user.enderecos.filter(addr => addr.trim() !== '') 
+    : (user?.endereco && user.endereco.trim() !== '' ? [user.endereco.trim()] : []);
   const [selectedAddress, setSelectedAddress] = useState<string>(addressList[0] || '');
   const [isCustom, setIsCustom] = useState(addressList.length === 0);
   const [customAddress, setCustomAddress] = useState('');
@@ -88,77 +90,102 @@ export default function Delivery() {
       <div style={{background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 24}}>
         <h3 style={{fontSize: 16, fontWeight: 600, marginBottom: 16}}>1. Endereço de Entrega</h3>
         
-        <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-          {/* Registered Address Options */}
-          {addressList.map((addr, index) => (
-            <label key={index} style={{
+        {addressList.length > 0 ? (
+          <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
+            {/* Registered Address Options */}
+            {addressList.map((addr, index) => (
+              <label key={index} style={{
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                gap: 12, 
+                padding: 16, 
+                borderRadius: 8, 
+                border: '1px solid',
+                borderColor: !isCustom && selectedAddress === addr ? 'var(--primary)' : '#eee',
+                cursor: 'pointer',
+                background: !isCustom && selectedAddress === addr ? '#fff9f9' : '#fff'
+              }}>
+                <input 
+                  type="radio" 
+                  name="addressOption" 
+                  checked={!isCustom && selectedAddress === addr}
+                  onChange={() => {
+                    setSelectedAddress(addr);
+                    setIsCustom(false);
+                  }}
+                  style={{marginTop: 4}}
+                />
+                <div>
+                  <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado {addressList.length > 1 ? index + 1 : ''}</strong>
+                  <span style={{fontSize: 14, color: '#555'}}>{addr}</span>
+                </div>
+              </label>
+            ))}
+
+            {/* Custom Address Option */}
+            <label style={{
               display: 'flex', 
               alignItems: 'flex-start', 
               gap: 12, 
               padding: 16, 
               borderRadius: 8, 
               border: '1px solid',
-              borderColor: !isCustom && selectedAddress === addr ? 'var(--primary)' : '#eee',
+              borderColor: isCustom ? 'var(--primary)' : '#eee',
               cursor: 'pointer',
-              background: !isCustom && selectedAddress === addr ? '#fff9f9' : '#fff'
+              background: isCustom ? '#fff9f9' : '#fff'
             }}>
               <input 
                 type="radio" 
                 name="addressOption" 
-                checked={!isCustom && selectedAddress === addr}
-                onChange={() => {
-                  setSelectedAddress(addr);
-                  setIsCustom(false);
-                }}
+                checked={isCustom}
+                onChange={() => setIsCustom(true)}
                 style={{marginTop: 4}}
               />
-              <div>
-                <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado {addressList.length > 1 ? index + 1 : ''}</strong>
-                <span style={{fontSize: 14, color: '#555'}}>{addr}</span>
+              <div style={{flex: 1}}>
+                <strong style={{display: 'block', fontSize: 15, marginBottom: 8}}>Usar Outro Endereço</strong>
+                {isCustom && (
+                  <input 
+                    type="text" 
+                    placeholder="Digite o novo endereço completo"
+                    value={customAddress}
+                    onChange={e => setCustomAddress(e.target.value)}
+                    style={{
+                      width: '100%', 
+                      padding: '10px 14px', 
+                      borderRadius: 6, 
+                      border: '1px solid #ccc',
+                      fontSize: 14
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  />
+                )}
               </div>
             </label>
-          ))}
-
-          {/* Custom Address Option */}
-          <label style={{
-            display: 'flex', 
-            alignItems: 'flex-start', 
-            gap: 12, 
-            padding: 16, 
-            borderRadius: 8, 
-            border: '1px solid',
-            borderColor: isCustom ? 'var(--primary)' : '#eee',
-            cursor: 'pointer',
-            background: isCustom ? '#fff9f9' : '#fff'
-          }}>
+          </div>
+        ) : (
+          <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+            <p style={{fontSize: 14, color: '#666', marginBottom: 8, lineHeight: '1.5'}}>
+              Você ainda não possui nenhum endereço cadastrado. Insira os dados do seu endereço abaixo para realizar a entrega:
+            </p>
             <input 
-              type="radio" 
-              name="addressOption" 
-              checked={isCustom}
-              onChange={() => setIsCustom(true)}
-              style={{marginTop: 4}}
+              type="text" 
+              placeholder="Rua, número, bairro, cidade e pontos de referência"
+              value={customAddress}
+              onChange={e => setCustomAddress(e.target.value)}
+              style={{
+                width: '100%', 
+                padding: '12px 16px', 
+                borderRadius: 8, 
+                border: '2px solid #eee',
+                fontSize: 15,
+                outline: 'none',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+              onBlur={e => e.target.style.borderColor = '#eee'}
             />
-            <div style={{flex: 1}}>
-              <strong style={{display: 'block', fontSize: 15, marginBottom: 8}}>Usar Outro Endereço</strong>
-              {isCustom && (
-                <input 
-                  type="text" 
-                  placeholder="Digite o novo endereço completo"
-                  value={customAddress}
-                  onChange={e => setCustomAddress(e.target.value)}
-                  style={{
-                    width: '100%', 
-                    padding: '10px 14px', 
-                    borderRadius: 6, 
-                    border: '1px solid #ccc',
-                    fontSize: 14
-                  }}
-                  onClick={e => e.stopPropagation()}
-                />
-              )}
-            </div>
-          </label>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Delivery Type Selection */}
