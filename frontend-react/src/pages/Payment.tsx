@@ -180,8 +180,8 @@ export default function Payment() {
           onClick={() => handleSelect('Pix')} 
           style={{
             ...boxStyle, 
-            borderColor: orderDetails.tipoPagamento === 'Pix' ? 'var(--primary)' : '#eee',
-            backgroundColor: orderDetails.tipoPagamento === 'Pix' ? '#fff9f9' : '#fff'
+            borderColor: orderDetails.tipoPagamento === 'Pix' ? 'var(--primary)' : 'var(--border)',
+            backgroundColor: orderDetails.tipoPagamento === 'Pix' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
           }}
         >
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -189,14 +189,14 @@ export default function Payment() {
             {orderDetails.tipoPagamento === 'Pix' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
           {orderDetails.tipoPagamento === 'Pix' && (
-            <div style={{marginTop: 16, textAlign: 'center', background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #eee'}}>
-              <p style={{marginBottom: 12, fontSize: 14, color: '#555'}}>
+            <div style={{marginTop: 16, textAlign: 'center', background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}}>
+              <p style={{marginBottom: 12, fontSize: 14, color: 'var(--text-muted)'}}>
                 Escaneie o código QR abaixo com o aplicativo do seu banco:
               </p>
               <img 
                 src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FurretiCucinaMockPixPaymentCode" 
                 alt="QRCode Pix" 
-                style={{width: 180, height: 180, borderRadius: 8, border: '1px solid #ccc', display: 'block', margin: '0 auto 12px'}} 
+                style={{width: 180, height: 180, borderRadius: 8, border: '1px solid var(--border)', display: 'block', margin: '0 auto 12px'}} 
               />
               <button 
                 type="button" 
@@ -227,8 +227,8 @@ export default function Payment() {
           onClick={() => handleSelect('Cartão')} 
           style={{
             ...boxStyle, 
-            borderColor: orderDetails.tipoPagamento === 'Cartão' ? 'var(--primary)' : '#eee',
-            backgroundColor: orderDetails.tipoPagamento === 'Cartão' ? '#fff9f9' : '#fff'
+            borderColor: orderDetails.tipoPagamento === 'Cartão' ? 'var(--primary)' : 'var(--border)',
+            backgroundColor: orderDetails.tipoPagamento === 'Cartão' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
           }}
         >
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -236,7 +236,7 @@ export default function Payment() {
             {orderDetails.tipoPagamento === 'Cartão' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
           {orderDetails.tipoPagamento === 'Cartão' && (
-            <div style={{marginTop: 16, background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #eee'}} onClick={e => e.stopPropagation()}>
+            <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
               <div style={{display: 'flex', gap: 24, marginBottom: 16}}>
                 <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
                   <input 
@@ -262,7 +262,7 @@ export default function Payment() {
                 <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
                   {/* Tipo de Cartão (Crédito ou Débito) */}
                   <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4}}>
-                    <label style={{display: 'block', fontSize: 12, color: '#666'}}>Modalidade do Cartão</label>
+                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)'}}>Modalidade do Cartão</label>
                     <div style={{display: 'flex', gap: 16}}>
                       <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
                         <input 
@@ -286,7 +286,7 @@ export default function Payment() {
                   </div>
 
                   <div>
-                    <label style={{display: 'block', fontSize: 12, color: '#666', marginBottom: 4}}>Número do Cartão</label>
+                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão</label>
                     <input 
                       type="text" 
                       placeholder="0000 0000 0000 0000"
@@ -296,7 +296,7 @@ export default function Payment() {
                     />
                   </div>
                   <div>
-                    <label style={{display: 'block', fontSize: 12, color: '#666', marginBottom: 4}}>Nome Impresso no Cartão</label>
+                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Nome Impresso no Cartão</label>
                     <input 
                       type="text" 
                       placeholder="Nome impresso no cartão"
@@ -307,7 +307,7 @@ export default function Payment() {
                   </div>
                   <div style={{display: 'flex', gap: 12}}>
                     <div style={{flex: 1}}>
-                      <label style={{display: 'block', fontSize: 12, color: '#666', marginBottom: 4}}>Validade</label>
+                      <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Validade</label>
                       <input 
                         type="text" 
                         placeholder="MM/AA"
@@ -317,7 +317,7 @@ export default function Payment() {
                       />
                     </div>
                     <div style={{flex: 1}}>
-                      <label style={{display: 'block', fontSize: 12, color: '#666', marginBottom: 4}}>CVV</label>
+                      <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>CVV</label>
                       <input 
                         type="text" 
                         placeholder="123"
@@ -329,7 +329,7 @@ export default function Payment() {
                   </div>
                 </div>
               ) : (
-                <p style={{color: '#666', fontSize: 14, margin: '8px 0 0 0'}}>
+                <p style={{color: 'var(--text-muted)', fontSize: 14, margin: '8px 0 0 0'}}>
                   O entregador levará a maquininha para que o pagamento seja realizado no momento da entrega.
                 </p>
               )}
@@ -342,8 +342,8 @@ export default function Payment() {
           onClick={() => handleSelect('Dinheiro')} 
           style={{
             ...boxStyle, 
-            borderColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--primary)' : '#eee',
-            backgroundColor: orderDetails.tipoPagamento === 'Dinheiro' ? '#fff9f9' : '#fff'
+            borderColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--primary)' : 'var(--border)',
+            backgroundColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
           }}
         >
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -351,7 +351,7 @@ export default function Payment() {
             {orderDetails.tipoPagamento === 'Dinheiro' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
           {orderDetails.tipoPagamento === 'Dinheiro' && (
-            <div style={{marginTop: 16, background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #eee'}} onClick={e => e.stopPropagation()}>
+            <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
               <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12}}>
                 <input 
                   type="checkbox" 
@@ -366,7 +366,7 @@ export default function Payment() {
 
               {precisaDeTroco && (
                 <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
-                  <span style={{fontSize: 13, color: '#666'}}>Precisa de troco para quanto?</span>
+                  <span style={{fontSize: 13, color: 'var(--text-muted)'}}>Precisa de troco para quanto?</span>
                   <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                     <span style={{fontWeight: 600}}>R$</span>
                     <input 
@@ -374,7 +374,7 @@ export default function Payment() {
                       placeholder="Ex: 100" 
                       value={trocoInput}
                       onChange={e => handleTrocoChange(e.target.value)}
-                      style={{padding: '10px 14px', borderRadius: 6, border: '1px solid #ccc', width: '100%', maxWidth: 120, fontSize: 15}} 
+                      style={{padding: '10px 14px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-main)', width: '100%', maxWidth: 120, fontSize: 15}} 
                     />
                   </div>
                   {trocoInput && Number(trocoInput) >= totalFinal && (
@@ -394,7 +394,7 @@ export default function Payment() {
         </div>
       </div>
 
-      <div style={{background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee'}}>
+      <div style={{background: 'var(--card-bg)', padding: 24, borderRadius: 12, border: '1px solid var(--border)'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 8}}>
           <span>Subtotal:</span>
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}</span>
@@ -403,7 +403,7 @@ export default function Payment() {
           <span>Taxa de Entrega:</span>
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(orderDetails.taxaEntrega)}</span>
         </div>
-        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: 20, fontWeight: 700, marginBottom: 24, paddingTop: 16, borderTop: '1px solid #eee'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: 20, fontWeight: 700, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--border)'}}>
           <span>Total:</span>
           <span style={{color: 'var(--primary)'}}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalFinal)}</span>
         </div>
@@ -442,7 +442,9 @@ const boxStyle = {
 const cardInputStyle = {
   padding: '10px 14px',
   borderRadius: 6,
-  border: '1px solid #ccc',
+  border: '1px solid var(--border)',
+  background: 'var(--input-bg)',
+  color: 'var(--text-main)',
   width: '100%',
   fontSize: 14,
   boxSizing: 'border-box' as const

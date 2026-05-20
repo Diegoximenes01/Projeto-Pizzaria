@@ -45,6 +45,7 @@ type Query {
   pedido(id: ID!): Pedido
   pedidosUsuario(usuarioId: ID!): [Pedido!]!
   login(cpf: String!, senha: String!): Usuario
+  verificarCpf(cpf: String!): Boolean!
 }
 
 type Mutation {

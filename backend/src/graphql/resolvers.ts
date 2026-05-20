@@ -15,6 +15,10 @@ export const resolvers = {
         throw new Error('CPF ou senha inválidos');
       }
       return usuario;
+    },
+    verificarCpf: async (_: any, { cpf }: { cpf: string }) => {
+      const usuario = await prisma.usuario.findUnique({ where: { cpf } });
+      return !!usuario;
     }
   },
   Mutation: {

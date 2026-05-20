@@ -39,7 +39,7 @@ export default function Cart() {
       <h2 className="section-title">Seu Carrinho</h2>
       <div style={{display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32}}>
         {cart.map(item => (
-          <div key={item.pizzaId} style={{display: 'flex', alignItems: 'center', background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #eee', gap: 16}}>
+          <div key={item.pizzaId} style={{display: 'flex', alignItems: 'center', background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)', gap: 16}}>
             <img src={item.imgUrl} alt={item.nome} style={{width: 60, height: 60, borderRadius: 8, objectFit: 'cover'}} />
             <div style={{flex: 1}}>
               <div style={{fontWeight: 600}}>{item.nome}</div>
@@ -57,7 +57,7 @@ export default function Cart() {
         ))}
       </div>
       
-      <div style={{background: '#fff', padding: 24, borderRadius: 8, border: '1px solid #eee'}}>
+      <div style={{background: 'var(--card-bg)', padding: 24, borderRadius: 8, border: '1px solid var(--border)'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', fontSize: 20, fontWeight: 700, marginBottom: 24}}>
           <span>Total:</span>
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</span>

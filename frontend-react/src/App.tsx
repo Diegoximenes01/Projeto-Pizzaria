@@ -99,8 +99,14 @@ function Header() {
 
   return (
     <header className="header">
-      <div className="logo" onClick={() => navigate('/')} style={{cursor: 'pointer'}}>
-        🍕 Furetti Cucina
+      <div className="logo" onClick={() => navigate('/')} style={{cursor: 'pointer', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px'}}>
+        <span>🍕</span>
+        <svg width="24" height="16" viewBox="0 0 3 2" style={{borderRadius: '2px', display: 'inline-block', boxShadow: '0 0 2px rgba(255,255,255,0.2)'}}>
+          <rect width="1" height="2" fill="#009246"/>
+          <rect x="1" width="1" height="2" fill="#f1f2f1"/>
+          <rect x="2" width="1" height="2" fill="#ce2b37"/>
+        </svg>
+        <span>Furetti Cucina</span>
       </div>
       
       <div className="header-actions">

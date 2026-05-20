@@ -1,11 +1,14 @@
 :root {
   --primary: #ea1d2c;
   --primary-hover: #cc1825;
-  --background: #f7f7f7;
-  --card-bg: #ffffff;
-  --text-main: #3e3e3e;
-  --text-muted: #717171;
-  --border: #f2f2f2;
+  --background: #090909;
+  --card-bg: #121212;
+  --card-selected-bg: #221315;
+  --text-main: #ffffff;
+  --text-muted: #a0a0a0;
+  --border: #222222;
+  --input-bg: #1a1a1a;
+  --input-border: #333333;
 }
 
 * {
@@ -214,8 +217,8 @@ body {
   left: 50%;
   transform: translateX(-50%);
   min-width: 180px;
-  background-color: white;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+  background-color: var(--card-bg);
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
   z-index: 200;
   border-radius: 8px;
   overflow: hidden;
@@ -252,7 +255,7 @@ body {
 }
 
 .dropdown-item.logout:hover {
-  background-color: #fff0f0;
+  background-color: var(--card-selected-bg);
 }
 
 .card-price {
@@ -320,7 +323,7 @@ body {
   align-items: center;
   padding: 16px 24px;
   border-top: 1px solid var(--border);
-  background: #fff;
+  background: var(--card-bg);
 }
 
 .quantity-control {
@@ -346,7 +349,7 @@ body {
 }
 
 .qty-btn:disabled {
-  color: #ccc;
+  color: #555;
   cursor: not-allowed;
 }
 
@@ -381,4 +384,18 @@ body {
   .pizza-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Global input styling for dark mode compatibility */
+input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border) !important;
+}
+input::placeholder {
+  color: var(--text-muted);
+}
+input:focus {
+  border-color: var(--primary) !important;
+  outline: none;
 }

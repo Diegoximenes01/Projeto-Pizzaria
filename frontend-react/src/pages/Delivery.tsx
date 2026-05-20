@@ -87,7 +87,7 @@ export default function Delivery() {
       <h2 className="section-title">Informações de Entrega</h2>
       
       {/* 1. Address Selection */}
-      <div style={{background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 24}}>
+      <div style={{background: 'var(--card-bg)', padding: 24, borderRadius: 12, border: '1px solid var(--border)', marginBottom: 24}}>
         <h3 style={{fontSize: 16, fontWeight: 600, marginBottom: 16}}>1. Endereço de Entrega</h3>
         
         {addressList.length > 0 ? (
@@ -101,9 +101,9 @@ export default function Delivery() {
                 padding: 16, 
                 borderRadius: 8, 
                 border: '1px solid',
-                borderColor: !isCustom && selectedAddress === addr ? 'var(--primary)' : '#eee',
+                borderColor: !isCustom && selectedAddress === addr ? 'var(--primary)' : 'var(--border)',
                 cursor: 'pointer',
-                background: !isCustom && selectedAddress === addr ? '#fff9f9' : '#fff'
+                background: !isCustom && selectedAddress === addr ? 'var(--card-selected-bg)' : 'var(--card-bg)'
               }}>
                 <input 
                   type="radio" 
@@ -117,7 +117,7 @@ export default function Delivery() {
                 />
                 <div>
                   <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado {addressList.length > 1 ? index + 1 : ''}</strong>
-                  <span style={{fontSize: 14, color: '#555'}}>{addr}</span>
+                  <span style={{fontSize: 14, color: 'var(--text-muted)'}}>{addr}</span>
                 </div>
               </label>
             ))}
@@ -130,9 +130,9 @@ export default function Delivery() {
               padding: 16, 
               borderRadius: 8, 
               border: '1px solid',
-              borderColor: isCustom ? 'var(--primary)' : '#eee',
+              borderColor: isCustom ? 'var(--primary)' : 'var(--border)',
               cursor: 'pointer',
-              background: isCustom ? '#fff9f9' : '#fff'
+              background: isCustom ? 'var(--card-selected-bg)' : 'var(--card-bg)'
             }}>
               <input 
                 type="radio" 
@@ -153,7 +153,9 @@ export default function Delivery() {
                       width: '100%', 
                       padding: '10px 14px', 
                       borderRadius: 6, 
-                      border: '1px solid #ccc',
+                      border: '1px solid var(--border)',
+                      background: 'var(--input-bg)',
+                      color: 'var(--text-main)',
                       fontSize: 14
                     }}
                     onClick={e => e.stopPropagation()}
@@ -164,7 +166,7 @@ export default function Delivery() {
           </div>
         ) : (
           <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-            <p style={{fontSize: 14, color: '#666', marginBottom: 8, lineHeight: '1.5'}}>
+            <p style={{fontSize: 14, color: 'var(--text-muted)', marginBottom: 8, lineHeight: '1.5'}}>
               Você ainda não possui nenhum endereço cadastrado. Insira os dados do seu endereço abaixo para realizar a entrega:
             </p>
             <input 
@@ -176,20 +178,22 @@ export default function Delivery() {
                 width: '100%', 
                 padding: '12px 16px', 
                 borderRadius: 8, 
-                border: '2px solid #eee',
+                border: '2px solid var(--border)',
+                background: 'var(--input-bg)',
+                color: 'var(--text-main)',
                 fontSize: 15,
                 outline: 'none',
                 transition: 'border-color 0.2s'
               }}
               onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-              onBlur={e => e.target.style.borderColor = '#eee'}
+              onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
           </div>
         )}
       </div>
 
       {/* 2. Delivery Type Selection */}
-      <div style={{background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 24}}>
+      <div style={{background: 'var(--card-bg)', padding: 24, borderRadius: 12, border: '1px solid var(--border)', marginBottom: 24}}>
         <h3 style={{fontSize: 16, fontWeight: 600, marginBottom: 16}}>2. Tipo de Entrega</h3>
         
         <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
@@ -198,8 +202,8 @@ export default function Delivery() {
             onClick={() => handleSelectDeliveryType('Entrega')}
             style={{
               ...boxStyle, 
-              borderColor: orderDetails.tipoEntrega === 'Entrega' ? 'var(--primary)' : '#eee',
-              background: orderDetails.tipoEntrega === 'Entrega' ? '#fff9f9' : '#fff'
+              borderColor: orderDetails.tipoEntrega === 'Entrega' ? 'var(--primary)' : 'var(--border)',
+              background: orderDetails.tipoEntrega === 'Entrega' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
             }}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <span style={{fontWeight: 600, fontSize: 16}}>Entregador (Entrega)</span>
@@ -213,8 +217,8 @@ export default function Delivery() {
             onClick={() => handleSelectDeliveryType('Retirada')}
             style={{
               ...boxStyle, 
-              borderColor: orderDetails.tipoEntrega === 'Retirada' ? 'var(--primary)' : '#eee',
-              background: orderDetails.tipoEntrega === 'Retirada' ? '#fff9f9' : '#fff'
+              borderColor: orderDetails.tipoEntrega === 'Retirada' ? 'var(--primary)' : 'var(--border)',
+              background: orderDetails.tipoEntrega === 'Retirada' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
             }}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <span style={{fontWeight: 600, fontSize: 16}}>Retirar na Loja</span>
