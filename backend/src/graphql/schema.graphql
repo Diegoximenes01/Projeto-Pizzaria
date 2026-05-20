@@ -2,7 +2,10 @@ type Usuario {
   id: ID!
   nome: String!
   cpf: String!
+  email: String
+  telefone: String
   endereco: String!
+  enderecos: [String!]
 }
 
 type Pizza {
@@ -40,11 +43,14 @@ type Query {
   pizza(id: ID!): Pizza
   pedidos: [Pedido!]!
   pedido(id: ID!): Pedido
+  pedidosUsuario(usuarioId: ID!): [Pedido!]!
   login(cpf: String!, senha: String!): Usuario
 }
 
 type Mutation {
-  cadastrarUsuario(nome: String!, cpf: String!, senha: String!, endereco: String!): Usuario!
+  cadastrarUsuario(nome: String!, cpf: String!, email: String!, telefone: String!, senha: String!, endereco: String!): Usuario!
+  redefinirSenha(cpf: String!, novaSenha: String!): Usuario!
+  atualizarEnderecos(usuarioId: ID!, enderecos: [String!]!): Usuario!
   criarPedido(
     itens: [PedidoItemInput!]!
     usuarioId: ID

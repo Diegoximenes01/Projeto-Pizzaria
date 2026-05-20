@@ -6,7 +6,8 @@ import Auth from './pages/Auth';
 import Delivery from './pages/Delivery';
 import Payment from './pages/Payment';
 import Success from './pages/Success';
-import { ShoppingCart } from 'lucide-react';
+import OrdersHistory from './pages/OrdersHistory';
+import { ShoppingCart, ClipboardList, User, LogOut } from 'lucide-react';
 import { useContext, useState, useEffect } from 'react';
 import { StoreContext } from './context/StoreContext';
 
@@ -79,7 +80,7 @@ function Header() {
   const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   
-  const totalItems = cart.reduce((acc, curr) => acc + curr.quantidade, 0);
+  const totalItems = cart ? cart.reduce((acc, curr) => acc + curr.quantidade, 0) : 0;
 
   const handleLogout = () => {
     setUser(null);
@@ -119,8 +120,18 @@ function Header() {
               Olá, <strong>{user.nome}</strong>
             </span>
             <div className={`user-dropdown ${isMenuOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
-              <button className="dropdown-item" onClick={() => { setIsEditOpen(true); setIsClicked(false); }}>Editar Informações</button>
-              <button className="dropdown-item logout" onClick={handleLogout}>Sair</button>
+              <button className="dropdown-item" style={{display: 'flex', alignItems: 'center', gap: 8}} onClick={() => { navigate('/pedidos'); setIsClicked(false); }}>
+                <ClipboardList size={16} />
+                Meus Pedidos
+              </button>
+              <button className="dropdown-item" style={{display: 'flex', alignItems: 'center', gap: 8}} onClick={() => { setIsEditOpen(true); setIsClicked(false); }}>
+                <User size={16} />
+                Editar Informações
+              </button>
+              <button className="dropdown-item logout" style={{display: 'flex', alignItems: 'center', gap: 8}} onClick={handleLogout}>
+                <LogOut size={16} />
+                Sair
+              </button>
             </div>
             <EditProfileModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} />
           </div>
@@ -164,6 +175,7 @@ function App() {
             <Route path="/entrega" element={<Delivery />} />
             <Route path="/pagamento" element={<Payment />} />
             <Route path="/sucesso" element={<Success />} />
+            <Route path="/pedidos" element={<OrdersHistory />} />
           </Routes>
         </main>
       </BrowserRouter>

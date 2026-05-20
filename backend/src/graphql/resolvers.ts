@@ -8,6 +8,7 @@ export const resolvers = {
     pizza: async (_: any, { id }: { id: string }) => await prisma.pizza.findUnique({ where: { id } }),
     pedidos: async () => await prisma.pedido.findMany({ include: { itens: { include: { pizza: true } }, usuario: true } }),
     pedido: async (_: any, { id }: { id: string }) => await prisma.pedido.findUnique({ where: { id }, include: { itens: { include: { pizza: true } }, usuario: true } }),
+    pedidosUsuario: async (_: any, { usuarioId }: { usuarioId: string }) => await prisma.pedido.findMany({ where: { usuarioId }, include: { itens: { include: { pizza: true } }, usuario: true } }),
     login: async (_: any, { cpf, senha }: { cpf: string, senha: string }) => {
       const usuario = await prisma.usuario.findUnique({ where: { cpf } });
       if (!usuario || usuario.senha !== senha) {
@@ -23,11 +24,38 @@ export const resolvers = {
         data: {
           nome: args.nome,
           cpf: args.cpf,
+          email: args.email,
+          telefone: args.telefone,
           senha: args.senha,
-          endereco: args.endereco
+          endereco: args.endereco,
+          enderecos: [args.endereco]
         }
       });
       return usuario;
+    },
+    redefinirSenha: async (_: any, { cpf, novaSenha }: { cpf: string, novaSenha: string }) => {
+      const usuario = await prisma.usuario.findUnique({ where: { cpf } });
+      if (!usuario) {
+        throw new Error('Usuário com este CPF não foi cadastrado');
+      }
+      const usuarioAtualizado = await prisma.usuario.update({
+        where: { cpf },
+        data: { senha: novaSenha }
+      });
+      return usuarioAtualizado;
+    },
+    atualizarEnderecos: async (_: any, { usuarioId, enderecos }: { usuarioId: string, enderecos: string[] }) => {
+      const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
+      if (!usuario) {
+        throw new Error('Usuário não encontrado');
+      }
+      return await prisma.usuario.update({
+        where: { id: usuarioId },
+        data: {
+          enderecos,
+          endereco: enderecos[enderecos.length - 1] || usuario.endereco
+        }
+      });
     },
     criarPedido: async (_: any, args: any) => {
       let totalItens = 0;

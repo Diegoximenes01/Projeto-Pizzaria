@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 
 export default function Cart() {
-  const { cart, setCart } = useContext(StoreContext);
+  const { cart, setCart, user } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const total = cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
@@ -62,7 +62,17 @@ export default function Cart() {
           <span>Total:</span>
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</span>
         </div>
-        <button className="add-btn" style={{width: '100%'}} onClick={() => navigate('/auth')}>
+        <button 
+          className="add-btn" 
+          style={{width: '100%'}} 
+          onClick={() => {
+            if (user) {
+              navigate('/entrega');
+            } else {
+              navigate('/auth');
+            }
+          }}
+        >
           Continuar
         </button>
       </div>

@@ -9,12 +9,15 @@ datasource db {
 }
 
 model Usuario {
-  id       String   @id @default(uuid())
-  nome     String
-  cpf      String   @unique
-  senha    String
-  endereco String
-  pedidos  Pedido[]
+  id        String   @id @default(uuid())
+  nome      String
+  cpf       String   @unique
+  email     String?  @unique
+  telefone  String?
+  senha     String
+  endereco  String
+  enderecos String[] @default([])
+  pedidos   Pedido[]
 }
 
 model Pizza {

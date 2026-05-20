@@ -1,12 +1,27 @@
 import { useContext, useState, useEffect } from 'react';
 import { StoreContext } from '../context/StoreContext';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, gql } from '@apollo/client';
+
+const ATUALIZAR_ENDERECOS = gql`
+  mutation AtualizarEnderecos($usuarioId: ID!, $enderecos: [String!]!) {
+    atualizarEnderecos(usuarioId: $usuarioId, enderecos: $enderecos) {
+      id
+      endereco
+      enderecos
+    }
+  }
+`;
 
 export default function Delivery() {
   const { user, setUser, orderDetails, setOrderDetails } = useContext(StoreContext);
   const navigate = useNavigate();
 
-  const [addressOption, setAddressOption] = useState<'registered' | 'custom'>(user?.endereco ? 'registered' : 'custom');
+  const [atualizarEnderecos] = useMutation(ATUALIZAR_ENDERECOS);
+
+  const addressList = user?.enderecos && user.enderecos.length > 0 ? user.enderecos : (user?.endereco ? [user.endereco] : []);
+  const [selectedAddress, setSelectedAddress] = useState<string>(addressList[0] || '');
+  const [isCustom, setIsCustom] = useState(addressList.length === 0);
   const [customAddress, setCustomAddress] = useState('');
   
   useEffect(() => {
@@ -25,16 +40,40 @@ export default function Delivery() {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (orderDetails.tipoEntrega === 'Entrega') {
-      if (addressOption === 'custom') {
+      let finalAddress = selectedAddress;
+      if (isCustom) {
         if (!customAddress.trim()) {
           alert('Por favor, digite o novo endereço de entrega.');
           return;
         }
+        finalAddress = customAddress.trim();
+
+        // Save new address to the user's addresses in db
+        const updatedList = [...addressList, finalAddress];
+        try {
+          await atualizarEnderecos({
+            variables: {
+              usuarioId: user.id,
+              enderecos: updatedList
+            }
+          });
+          
+          setUser({
+            ...user,
+            enderecos: updatedList,
+            endereco: finalAddress
+          });
+        } catch (e: any) {
+          alert('Erro ao salvar endereço: ' + e.message);
+          return;
+        }
+      } else {
+        // If selecting a registered address, make it the active address in context
         setUser({
           ...user,
-          endereco: customAddress.trim()
+          endereco: finalAddress
         });
       }
     }
@@ -50,32 +89,35 @@ export default function Delivery() {
         <h3 style={{fontSize: 16, fontWeight: 600, marginBottom: 16}}>1. Endereço de Entrega</h3>
         
         <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-          {/* Registered Address Option */}
-          {user.endereco && (
-            <label style={{
+          {/* Registered Address Options */}
+          {addressList.map((addr, index) => (
+            <label key={index} style={{
               display: 'flex', 
               alignItems: 'flex-start', 
               gap: 12, 
               padding: 16, 
               borderRadius: 8, 
               border: '1px solid',
-              borderColor: addressOption === 'registered' ? 'var(--primary)' : '#eee',
+              borderColor: !isCustom && selectedAddress === addr ? 'var(--primary)' : '#eee',
               cursor: 'pointer',
-              background: addressOption === 'registered' ? '#fff9f9' : '#fff'
+              background: !isCustom && selectedAddress === addr ? '#fff9f9' : '#fff'
             }}>
               <input 
                 type="radio" 
                 name="addressOption" 
-                checked={addressOption === 'registered'}
-                onChange={() => setAddressOption('registered')}
+                checked={!isCustom && selectedAddress === addr}
+                onChange={() => {
+                  setSelectedAddress(addr);
+                  setIsCustom(false);
+                }}
                 style={{marginTop: 4}}
               />
               <div>
-                <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado</strong>
-                <span style={{fontSize: 14, color: '#555'}}>{user.endereco}</span>
+                <strong style={{display: 'block', fontSize: 15, marginBottom: 4}}>Usar Endereço Cadastrado {addressList.length > 1 ? index + 1 : ''}</strong>
+                <span style={{fontSize: 14, color: '#555'}}>{addr}</span>
               </div>
             </label>
-          )}
+          ))}
 
           {/* Custom Address Option */}
           <label style={{
@@ -85,20 +127,20 @@ export default function Delivery() {
             padding: 16, 
             borderRadius: 8, 
             border: '1px solid',
-            borderColor: addressOption === 'custom' ? 'var(--primary)' : '#eee',
+            borderColor: isCustom ? 'var(--primary)' : '#eee',
             cursor: 'pointer',
-            background: addressOption === 'custom' ? '#fff9f9' : '#fff'
+            background: isCustom ? '#fff9f9' : '#fff'
           }}>
             <input 
               type="radio" 
               name="addressOption" 
-              checked={addressOption === 'custom'}
-              onChange={() => setAddressOption('custom')}
+              checked={isCustom}
+              onChange={() => setIsCustom(true)}
               style={{marginTop: 4}}
             />
             <div style={{flex: 1}}>
               <strong style={{display: 'block', fontSize: 15, marginBottom: 8}}>Usar Outro Endereço</strong>
-              {addressOption === 'custom' && (
+              {isCustom && (
                 <input 
                   type="text" 
                   placeholder="Digite o novo endereço completo"
