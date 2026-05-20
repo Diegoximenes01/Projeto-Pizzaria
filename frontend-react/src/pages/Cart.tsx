@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState, useRef } from 'react';
 import { StoreContext } from '../context/StoreContext';
 import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -6,6 +6,8 @@ import { Trash2 } from 'lucide-react';
 export default function Cart() {
   const { cart, setCart, user } = useContext(StoreContext);
   const navigate = useNavigate();
+  const [showRemovedToast, setShowRemovedToast] = useState(false);
+  const toastTimeoutRef = useRef<any>(null);
 
   const total = cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
 
@@ -21,6 +23,13 @@ export default function Cart() {
 
   const removeItem = (id: string) => {
     setCart(cart.filter(item => item.pizzaId !== id));
+    setShowRemovedToast(true);
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowRemovedToast(false);
+    }, 3000);
   };
 
   if (cart.length === 0) {
@@ -76,6 +85,13 @@ export default function Cart() {
           Continuar
         </button>
       </div>
+
+      {showRemovedToast && (
+        <div className="removed-toast">
+          <Trash2 size={16} style={{ marginRight: 8, color: '#ea1d2c' }} />
+          <span>Item Removido</span>
+        </div>
+      )}
     </div>
   );
 }

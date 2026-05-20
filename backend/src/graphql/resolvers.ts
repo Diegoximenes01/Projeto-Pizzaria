@@ -19,6 +19,14 @@ export const resolvers = {
     verificarCpf: async (_: any, { cpf }: { cpf: string }) => {
       const usuario = await prisma.usuario.findUnique({ where: { cpf } });
       return !!usuario;
+    },
+    verificarEmail: async (_: any, { email, usuarioId }: { email: string, usuarioId?: string }) => {
+      const where: any = { email };
+      if (usuarioId) {
+        where.id = { not: usuarioId };
+      }
+      const usuario = await prisma.usuario.findFirst({ where });
+      return !!usuario;
     }
   },
   Mutation: {
@@ -59,6 +67,16 @@ export const resolvers = {
           enderecos,
           endereco: enderecos[enderecos.length - 1] || usuario.endereco
         }
+      });
+    },
+    atualizarPerfil: async (_: any, { usuarioId, nome, email, telefone }: { usuarioId: string, nome: string, email: string, telefone: string }) => {
+      const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
+      if (!usuario) {
+        throw new Error('Usuário não encontrado');
+      }
+      return await prisma.usuario.update({
+        where: { id: usuarioId },
+        data: { nome, email, telefone }
       });
     },
     criarPedido: async (_: any, args: any) => {

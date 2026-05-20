@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { StoreContext } from '../context/StoreContext';
 
@@ -33,6 +33,9 @@ export default function Home() {
   
   const [selectedPizza, setSelectedPizza] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<any>(null);
+  const successTimeoutRef = useRef<any>(null);
 
   if (loading) return <div style={{textAlign: 'center', padding: 40}}>Carregando cardápio...</div>;
   if (error) return <div style={{textAlign: 'center', padding: 40, color: 'red'}}>Erro ao conectar com o servidor!</div>;
@@ -40,6 +43,13 @@ export default function Home() {
   const openModal = (pizza: any) => {
     setSelectedPizza(pizza);
     setQuantity(1);
+  };
+
+  const closeSuccess = () => {
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+    }
+    setShowSuccess(false);
   };
 
   const addToCart = () => {
@@ -56,7 +66,19 @@ export default function Home() {
         imgUrl: getImageForPizza(selectedPizza)
       }]);
     }
+    setSuccessDetails({
+      nome: selectedPizza.nome,
+      quantidade: quantity
+    });
     setSelectedPizza(null);
+    setShowSuccess(true);
+
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+    }
+    successTimeoutRef.current = setTimeout(() => {
+      setShowSuccess(false);
+    }, 2500);
   };
 
   const tradicionais = data?.pizzas.filter((p: any) => p.categoria === 'Tradicional') || [];
@@ -110,6 +132,23 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccess && successDetails && (
+        <div className="modal-overlay" onClick={closeSuccess}>
+          <div className="success-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="success-close-btn" onClick={closeSuccess} aria-label="Fechar">&times;</button>
+            <svg className="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none" />
+              <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+            <h3 className="success-title">Item Adicionado!</h3>
+            <p className="success-subtitle">
+              {successDetails.quantidade}x {successDetails.nome} {successDetails.quantidade > 1 ? 'adicionadas' : 'adicionada'} ao carrinho.
+            </p>
+            <div className="success-timer-bar"></div>
           </div>
         </div>
       )}

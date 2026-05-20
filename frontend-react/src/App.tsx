@@ -10,22 +10,126 @@ import OrdersHistory from './pages/OrdersHistory';
 import { ShoppingCart, ClipboardList, User, LogOut } from 'lucide-react';
 import { useContext, useState, useEffect } from 'react';
 import { StoreContext } from './context/StoreContext';
+import { useMutation, useLazyQuery, gql } from '@apollo/client';
+
+const VERIFICAR_EMAIL = gql`
+  query VerificarEmail($email: String!, $usuarioId: ID) {
+    verificarEmail(email: $email, usuarioId: $usuarioId)
+  }
+`;
+
+const ATUALIZAR_PERFIL = gql`
+  mutation AtualizarPerfil($usuarioId: ID!, $nome: String!, $email: String!, $telefone: String!) {
+    atualizarPerfil(usuarioId: $usuarioId, nome: $nome, email: $email, telefone: $telefone) {
+      id
+      nome
+      email
+      telefone
+    }
+  }
+`;
+
+const formatPhoneNumber = (value: string) => {
+  const numbersOnly = value.replace(/\D/g, '').slice(0, 11);
+  if (numbersOnly.length <= 2) {
+    return numbersOnly;
+  }
+  if (numbersOnly.length <= 7) {
+    return `(${numbersOnly.slice(0, 2)}) ${numbersOnly.slice(2)}`;
+  }
+  return `(${numbersOnly.slice(0, 2)}) ${numbersOnly.slice(2, 7)}-${numbersOnly.slice(7)}`;
+};
 
 function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const { user, setUser } = useContext(StoreContext);
   const [nome, setNome] = useState(user?.nome || '');
-  const [endereco, setEndereco] = useState(user?.endereco || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [telefone, setTelefone] = useState(user?.telefone || '');
+  const [emailError, setEmailError] = useState('');
+
+  const [verificarEmailQuery] = useLazyQuery(VERIFICAR_EMAIL);
+  const [atualizarPerfil] = useMutation(ATUALIZAR_PERFIL);
+
+  useEffect(() => {
+    if (user) {
+      setNome(user.nome || '');
+      setEmail(user.email || '');
+      setTelefone(formatPhoneNumber(user.telefone || ''));
+      setEmailError('');
+    }
+  }, [user, isOpen]);
 
   if (!isOpen || !user) return null;
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleEmailBlur = async () => {
+    if (!email) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Por favor, insira um e-mail válido.');
+      return;
+    }
+
+    try {
+      const { data } = await verificarEmailQuery({
+        variables: { email, usuarioId: user.id }
+      });
+      if (data && data.verificarEmail) {
+        setEmailError('Este e-mail já está sendo utilizado em outra conta.');
+      } else {
+        setEmailError('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setEmailError('');
+  };
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTelefone(formatPhoneNumber(e.target.value));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUser({
-      ...user,
-      nome,
-      endereco
-    });
-    onClose();
+    if (emailError) return;
+
+    try {
+      const { data: checkData } = await verificarEmailQuery({
+        variables: { email, usuarioId: user.id }
+      });
+      if (checkData && checkData.verificarEmail) {
+        setEmailError('Este e-mail já está sendo utilizado em outra conta.');
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    try {
+      const { data } = await atualizarPerfil({
+        variables: {
+          usuarioId: user.id,
+          nome,
+          email,
+          telefone: telefone.replace(/\D/g, '') // Save clean numbers to DB
+        }
+      });
+      if (data && data.atualizarPerfil) {
+        setUser({
+          ...user,
+          nome: data.atualizarPerfil.nome,
+          email: data.atualizarPerfil.email,
+          telefone: data.atualizarPerfil.telefone
+        });
+        onClose();
+      }
+    } catch (err: any) {
+      alert('Erro ao atualizar perfil: ' + err.message);
+    }
   };
 
   return (
@@ -44,6 +148,36 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
             />
           </div>
           <div>
+            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Email</label>
+            <input 
+              type="email" 
+              value={email} 
+              onChange={handleEmailChange} 
+              onBlur={handleEmailBlur}
+              required 
+              style={{ 
+                ...inputStyle, 
+                width: '100%',
+                borderColor: emailError ? 'var(--primary)' : '#ccc' 
+              }}
+            />
+            {emailError && (
+              <span style={{ color: 'var(--primary)', fontSize: 12, marginTop: 4, display: 'block', fontWeight: 500 }}>
+                {emailError}
+              </span>
+            )}
+          </div>
+          <div>
+            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Telefone</label>
+            <input 
+              type="text" 
+              value={telefone} 
+              onChange={handleTelefoneChange} 
+              required 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div>
             <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>CPF (Não alterável)</label>
             <input 
               type="text" 
@@ -52,19 +186,9 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
               style={{ ...inputStyle, width: '100%', backgroundColor: '#f5f5f5', color: '#999', cursor: 'not-allowed' }}
             />
           </div>
-          <div>
-            <label style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 6 }}>Endereço de Entrega</label>
-            <input 
-              type="text" 
-              value={endereco} 
-              onChange={e => setEndereco(e.target.value)} 
-              required 
-              style={{ ...inputStyle, width: '100%' }}
-            />
-          </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 12, justifyContent: 'flex-end' }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid #ccc', background: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
-            <button type="submit" className="add-btn" style={{ minWidth: 'auto', padding: '10px 20px' }}>Salvar</button>
+            <button type="button" onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid var(--primary)', color: 'var(--primary)', background: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+            <button type="submit" className="add-btn" disabled={!!emailError} style={{ minWidth: 'auto', padding: '10px 20px', opacity: emailError ? 0.6 : 1, cursor: emailError ? 'not-allowed' : 'pointer' }}>Salvar</button>
           </div>
         </form>
       </div>
@@ -117,7 +241,7 @@ function Header() {
             onMouseLeave={() => setIsHovered(false)}
           >
             <span 
-              className="user-menu-trigger"
+              className={`user-menu-trigger ${isMenuOpen ? 'active' : ''}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsClicked(!isClicked);

@@ -46,10 +46,12 @@ type Query {
   pedidosUsuario(usuarioId: ID!): [Pedido!]!
   login(cpf: String!, senha: String!): Usuario
   verificarCpf(cpf: String!): Boolean!
+  verificarEmail(email: String!, usuarioId: ID): Boolean!
 }
 
 type Mutation {
   cadastrarUsuario(nome: String!, cpf: String!, email: String!, telefone: String!, senha: String!, endereco: String!): Usuario!
+  atualizarPerfil(usuarioId: ID!, nome: String!, email: String!, telefone: String!): Usuario!
   redefinirSenha(cpf: String!, novaSenha: String!): Usuario!
   atualizarEnderecos(usuarioId: ID!, enderecos: [String!]!): Usuario!
   criarPedido(

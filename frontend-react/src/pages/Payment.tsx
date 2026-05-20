@@ -37,6 +37,7 @@ export default function Payment() {
   // Estados para dados do cartão
   const [opcaoCartao, setOpcaoCartao] = useState<'online' | 'entrega'>('online');
   const [tipoCartao, setTipoCartao] = useState<'crédito' | 'débito'>('crédito');
+  const [localPagamento, setLocalPagamento] = useState<'online' | 'loja'>('online');
   const [cartaoDados, setCartaoDados] = useState({
     numero: '',
     nome: '',
@@ -53,6 +54,12 @@ export default function Payment() {
       navigate('/');
     }
   }, [user, cart, navigate]);
+
+  useEffect(() => {
+    if (orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online' && orderDetails.tipoPagamento === 'Dinheiro') {
+      setOrderDetails({ ...orderDetails, tipoPagamento: 'Pix' });
+    }
+  }, [orderDetails.tipoEntrega, localPagamento]);
 
   if (!user || cart.length === 0) {
     return null;
@@ -104,6 +111,11 @@ export default function Payment() {
     setCartaoDados({ ...cartaoDados, cvv: limpo });
   };
 
+  const precisaValidarCartao = orderDetails.tipoPagamento === 'Cartão' && (
+    (orderDetails.tipoEntrega === 'Entrega' && opcaoCartao === 'online') ||
+    (orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online')
+  );
+
   const confirmarPedido = async () => {
     if (orderDetails.tipoPagamento === 'Dinheiro' && precisaDeTroco) {
       const valorTroco = Number(trocoInput);
@@ -117,7 +129,7 @@ export default function Payment() {
       }
     }
 
-    if (orderDetails.tipoPagamento === 'Cartão' && opcaoCartao === 'online') {
+    if (precisaValidarCartao) {
       const { numero, nome, validade, cvv } = cartaoDados;
       const numDigits = numero.replace(/\s/g, '');
       if (numDigits.length < 16) {
@@ -145,11 +157,32 @@ export default function Payment() {
     }
 
     try {
-      const tipoPg = orderDetails.tipoPagamento === 'Cartão'
-        ? (opcaoCartao === 'online'
+      let tipoPg: string = orderDetails.tipoPagamento;
+      if (orderDetails.tipoEntrega === 'Retirada') {
+        if (localPagamento === 'online') {
+          if (orderDetails.tipoPagamento === 'Cartão') {
+            tipoPg = `Cartão de Crédito (Online)`;
+          } else {
+            tipoPg = 'Pix (Online)';
+          }
+        } else {
+          // Pago na loja
+          if (orderDetails.tipoPagamento === 'Cartão') {
+            tipoPg = 'Cartão (Na loja)';
+          } else if (orderDetails.tipoPagamento === 'Pix') {
+            tipoPg = 'Pix (Na loja)';
+          } else {
+            tipoPg = 'Dinheiro (Na loja)';
+          }
+        }
+      } else {
+        // Entrega
+        if (orderDetails.tipoPagamento === 'Cartão') {
+          tipoPg = opcaoCartao === 'online'
             ? `Cartão de ${tipoCartao === 'crédito' ? 'Crédito' : 'Débito'} (Online)`
-            : 'Cartão (Na entrega)')
-        : orderDetails.tipoPagamento;
+            : 'Cartão (Na entrega)';
+        }
+      }
 
       await criarPedido({
         variables: {
@@ -174,6 +207,62 @@ export default function Payment() {
     <div style={{maxWidth: 600, margin: '0 auto'}}>
       <h2 className="section-title">Forma de Pagamento</h2>
 
+      {/* Seletor "Pago Online" / "Pago na Loja" para Retirada */}
+      {orderDetails.tipoEntrega === 'Retirada' && (
+        <div style={{
+          background: 'var(--card-bg)',
+          padding: 20,
+          borderRadius: 12,
+          border: '1px solid var(--border)',
+          marginBottom: 24
+        }}>
+          <label style={{display: 'block', fontSize: 14, color: 'var(--text-muted)', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase'}}>Como deseja pagar?</label>
+          <div style={{display: 'flex', gap: 16}}>
+            <button
+              type="button"
+              onClick={() => {
+                setLocalPagamento('online');
+                if (orderDetails.tipoPagamento === 'Dinheiro') {
+                  setOrderDetails({ ...orderDetails, tipoPagamento: 'Pix' });
+                }
+              }}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: '2px solid',
+                borderColor: localPagamento === 'online' ? 'var(--primary)' : 'var(--border)',
+                background: localPagamento === 'online' ? 'var(--card-selected-bg)' : 'var(--card-bg)',
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.2s'
+              }}
+            >
+              💻 Pagar Online
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocalPagamento('loja')}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: '2px solid',
+                borderColor: localPagamento === 'loja' ? 'var(--primary)' : 'var(--border)',
+                background: localPagamento === 'loja' ? 'var(--card-selected-bg)' : 'var(--card-bg)',
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.2s'
+              }}
+            >
+              🏪 Pagar na Loja
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32}}>
         {/* Opção Pix */}
         <div 
@@ -189,35 +278,43 @@ export default function Payment() {
             {orderDetails.tipoPagamento === 'Pix' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
           {orderDetails.tipoPagamento === 'Pix' && (
-            <div style={{marginTop: 16, textAlign: 'center', background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}}>
-              <p style={{marginBottom: 12, fontSize: 14, color: 'var(--text-muted)'}}>
-                Escaneie o código QR abaixo com o aplicativo do seu banco:
-              </p>
-              <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FurretiCucinaMockPixPaymentCode" 
-                alt="QRCode Pix" 
-                style={{width: 180, height: 180, borderRadius: 8, border: '1px solid var(--border)', display: 'block', margin: '0 auto 12px'}} 
-              />
-              <button 
-                type="button" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigator.clipboard.writeText("00020101021126580014br.gov.bcb.pix0136FurretiCucinaMockPixPaymentCode");
-                  alert("Código Pix copia e cola copiado com sucesso!");
-                }}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 6,
-                  border: '1px solid var(--primary)',
-                  background: 'none',
-                  color: 'var(--primary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: 13
-                }}
-              >
-                Copiar Chave Pix Copia e Cola
-              </button>
+            <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
+              {orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'loja' ? (
+                <p style={{fontSize: 14, color: 'var(--text-muted)', margin: 0}}>
+                  O pagamento via Pix será realizado diretamente no balcão da loja no momento da retirada.
+                </p>
+              ) : (
+                <div style={{textAlign: 'center'}}>
+                  <p style={{marginBottom: 12, fontSize: 14, color: 'var(--text-muted)'}}>
+                    Escaneie o código QR abaixo com o aplicativo do seu banco:
+                  </p>
+                  <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FurretiCucinaMockPixPaymentCode" 
+                    alt="QRCode Pix" 
+                    style={{width: 180, height: 180, borderRadius: 8, border: '1px solid var(--border)', display: 'block', margin: '0 auto 12px'}} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText("00020101021126580014br.gov.bcb.pix0136FurretiCucinaMockPixPaymentCode");
+                      alert("Código Pix copia e cola copiado com sucesso!");
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      border: '1px solid var(--primary)',
+                      background: 'none',
+                      color: 'var(--primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: 13
+                    }}
+                  >
+                    Copiar Chave Pix Copia e Cola
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -232,61 +329,21 @@ export default function Payment() {
           }}
         >
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <div style={{fontWeight: 600, fontSize: 18}}>💳 Cartão de Crédito ou Débito</div>
+            <div style={{fontWeight: 600, fontSize: 18}}>
+              {orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online' ? '💳 Cartão de Crédito' : '💳 Cartão de Crédito ou Débito'}
+            </div>
             {orderDetails.tipoPagamento === 'Cartão' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
           {orderDetails.tipoPagamento === 'Cartão' && (
             <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
-              <div style={{display: 'flex', gap: 24, marginBottom: 16}}>
-                <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                  <input 
-                    type="radio" 
-                    name="opcaoCartao" 
-                    checked={opcaoCartao === 'online'} 
-                    onChange={() => setOpcaoCartao('online')} 
-                  />
-                  Pagar online agora
-                </label>
-                <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                  <input 
-                    type="radio" 
-                    name="opcaoCartao" 
-                    checked={opcaoCartao === 'entrega'} 
-                    onChange={() => setOpcaoCartao('entrega')} 
-                  />
-                  Pagamento na entrega
-                </label>
-              </div>
-
-              {opcaoCartao === 'online' ? (
+              {orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'loja' ? (
+                <p style={{color: 'var(--text-muted)', fontSize: 14, margin: 0}}>
+                  O pagamento via cartão (crédito ou débito) será realizado diretamente na maquininha no balcão da loja no momento da retirada.
+                </p>
+              ) : orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online' ? (
                 <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-                  {/* Tipo de Cartão (Crédito ou Débito) */}
-                  <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4}}>
-                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)'}}>Modalidade do Cartão</label>
-                    <div style={{display: 'flex', gap: 16}}>
-                      <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                        <input 
-                          type="radio" 
-                          name="tipoCartao" 
-                          checked={tipoCartao === 'crédito'} 
-                          onChange={() => setTipoCartao('crédito')} 
-                        />
-                        Crédito
-                      </label>
-                      <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                        <input 
-                          type="radio" 
-                          name="tipoCartao" 
-                          checked={tipoCartao === 'débito'} 
-                          onChange={() => setTipoCartao('débito')} 
-                        />
-                        Débito
-                      </label>
-                    </div>
-                  </div>
-
                   <div>
-                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão</label>
+                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão de Crédito</label>
                     <input 
                       type="text" 
                       placeholder="0000 0000 0000 0000"
@@ -329,69 +386,165 @@ export default function Payment() {
                   </div>
                 </div>
               ) : (
-                <p style={{color: 'var(--text-muted)', fontSize: 14, margin: '8px 0 0 0'}}>
-                  O entregador levará a maquininha para que o pagamento seja realizado no momento da entrega.
-                </p>
+                <>
+                  <div style={{display: 'flex', gap: 24, marginBottom: 16}}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                      <input 
+                        type="radio" 
+                        name="opcaoCartao" 
+                        checked={opcaoCartao === 'online'} 
+                        onChange={() => setOpcaoCartao('online')} 
+                      />
+                      Pagar online agora
+                    </label>
+                    <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                      <input 
+                        type="radio" 
+                        name="opcaoCartao" 
+                        checked={opcaoCartao === 'entrega'} 
+                        onChange={() => setOpcaoCartao('entrega')} 
+                      />
+                      Pagamento na entrega
+                    </label>
+                  </div>
+
+                  {opcaoCartao === 'online' ? (
+                    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4}}>
+                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)'}}>Modalidade do Cartão</label>
+                        <div style={{display: 'flex', gap: 16}}>
+                          <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                            <input 
+                              type="radio" 
+                              name="tipoCartao" 
+                              checked={tipoCartao === 'crédito'} 
+                              onChange={() => setTipoCartao('crédito')} 
+                            />
+                            Crédito
+                          </label>
+                          <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                            <input 
+                              type="radio" 
+                              name="tipoCartao" 
+                              checked={tipoCartao === 'débito'} 
+                              onChange={() => setTipoCartao('débito')} 
+                            />
+                            Débito
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="0000 0000 0000 0000"
+                          value={cartaoDados.numero}
+                          onChange={e => handleNumeroCartaoChange(e.target.value)}
+                          style={cardInputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Nome Impresso no Cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="Nome impresso no cartão"
+                          value={cartaoDados.nome}
+                          onChange={e => setCartaoDados({ ...cartaoDados, nome: e.target.value.toUpperCase() })}
+                          style={cardInputStyle}
+                        />
+                      </div>
+                      <div style={{display: 'flex', gap: 12}}>
+                        <div style={{flex: 1}}>
+                          <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Validade</label>
+                          <input 
+                            type="text" 
+                            placeholder="MM/AA"
+                            value={cartaoDados.validade}
+                            onChange={e => handleValidadeChange(e.target.value)}
+                            style={cardInputStyle}
+                          />
+                        </div>
+                        <div style={{flex: 1}}>
+                          <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>CVV</label>
+                          <input 
+                            type="text" 
+                            placeholder="123"
+                            value={cartaoDados.cvv}
+                            onChange={e => handleCvvChange(e.target.value)}
+                            style={cardInputStyle}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p style={{color: 'var(--text-muted)', fontSize: 14, margin: '8px 0 0 0'}}>
+                      O entregador levará a maquininha para que o pagamento seja realizado no momento da entrega.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
         </div>
 
         {/* Opção Dinheiro */}
-        <div 
-          onClick={() => handleSelect('Dinheiro')} 
-          style={{
-            ...boxStyle, 
-            borderColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--primary)' : 'var(--border)',
-            backgroundColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
-          }}
-        >
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <div style={{fontWeight: 600, fontSize: 18}}>💵 Dinheiro</div>
-            {orderDetails.tipoPagamento === 'Dinheiro' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
-          </div>
-          {orderDetails.tipoPagamento === 'Dinheiro' && (
-            <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
-              <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12}}>
-                <input 
-                  type="checkbox" 
-                  checked={precisaDeTroco} 
-                  onChange={e => {
-                    setPrecisaDeTroco(e.target.checked);
-                    if (!e.target.checked) setTrocoInput('');
-                  }} 
-                />
-                <span style={{fontSize: 14, fontWeight: 500}}>Preciso de troco</span>
-              </label>
-
-              {precisaDeTroco && (
-                <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
-                  <span style={{fontSize: 13, color: 'var(--text-muted)'}}>Precisa de troco para quanto?</span>
-                  <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                    <span style={{fontWeight: 600}}>R$</span>
-                    <input 
-                      type="number" 
-                      placeholder="Ex: 100" 
-                      value={trocoInput}
-                      onChange={e => handleTrocoChange(e.target.value)}
-                      style={{padding: '10px 14px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-main)', width: '100%', maxWidth: 120, fontSize: 15}} 
-                    />
-                  </div>
-                  {trocoInput && Number(trocoInput) >= totalFinal && (
-                    <div style={{color: '#28a745', fontSize: 14, fontWeight: 600, marginTop: 4}}>
-                      Troco a receber: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(trocoResultado)}
-                    </div>
-                  )}
-                  {trocoInput && Number(trocoInput) < totalFinal && (
-                    <div style={{color: 'var(--primary)', fontSize: 13, fontWeight: 500, marginTop: 4}}>
-                      O valor do troco deve ser maior ou igual ao total do pedido.
-                    </div>
-                  )}
-                </div>
-              )}
+        {!(orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online') && (
+          <div 
+            onClick={() => handleSelect('Dinheiro')} 
+            style={{
+              ...boxStyle, 
+              borderColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--primary)' : 'var(--border)',
+              backgroundColor: orderDetails.tipoPagamento === 'Dinheiro' ? 'var(--card-selected-bg)' : 'var(--card-bg)'
+            }}
+          >
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <div style={{fontWeight: 600, fontSize: 18}}>💵 Dinheiro</div>
+              {orderDetails.tipoPagamento === 'Dinheiro' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
             </div>
-          )}
-        </div>
+            {orderDetails.tipoPagamento === 'Dinheiro' && (
+              <div style={{marginTop: 16, background: 'var(--card-bg)', padding: 16, borderRadius: 8, border: '1px solid var(--border)'}} onClick={e => e.stopPropagation()}>
+                <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12}}>
+                  <input 
+                    type="checkbox" 
+                    checked={precisaDeTroco} 
+                    onChange={e => {
+                      setPrecisaDeTroco(e.target.checked);
+                      if (!e.target.checked) setTrocoInput('');
+                    }} 
+                  />
+                  <span style={{fontSize: 14, fontWeight: 500}}>Preciso de troco</span>
+                </label>
+
+                {precisaDeTroco && (
+                  <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
+                    <span style={{fontSize: 13, color: 'var(--text-muted)'}}>Precisa de troco para quanto?</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                      <span style={{fontWeight: 600}}>R$</span>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 100" 
+                        value={trocoInput}
+                        onChange={e => handleTrocoChange(e.target.value)}
+                        style={{padding: '10px 14px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-main)', width: '100%', maxWidth: 120, fontSize: 15}} 
+                      />
+                    </div>
+                    {trocoInput && Number(trocoInput) >= totalFinal && (
+                      <div style={{color: '#28a745', fontSize: 14, fontWeight: 600, marginTop: 4}}>
+                        Troco a receber: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(trocoResultado)}
+                      </div>
+                    )}
+                    {trocoInput && Number(trocoInput) < totalFinal && (
+                      <div style={{color: 'var(--primary)', fontSize: 13, fontWeight: 500, marginTop: 4}}>
+                        O valor do troco deve ser maior ou igual ao total do pedido.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{background: 'var(--card-bg)', padding: 24, borderRadius: 12, border: '1px solid var(--border)'}}>
@@ -408,23 +561,44 @@ export default function Payment() {
           <span style={{color: 'var(--primary)'}}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalFinal)}</span>
         </div>
         
-        <button 
-          className="add-btn" 
-          style={{width: '100%', justifyContent: 'center'}} 
-          onClick={confirmarPedido} 
-          disabled={
-            loading || 
-            (orderDetails.tipoPagamento === 'Dinheiro' && precisaDeTroco && (Number(trocoInput) < totalFinal || !trocoInput)) ||
-            (orderDetails.tipoPagamento === 'Cartão' && opcaoCartao === 'online' && (
-              cartaoDados.numero.replace(/\s/g, '').length < 16 || 
-              !cartaoDados.nome.trim() || 
-              cartaoDados.validade.length < 5 || 
-              cartaoDados.cvv.length < 3
-            ))
-          }
-        >
-          {loading ? 'Processando...' : 'Confirmar Pedido'}
-        </button>
+        <div style={{display: 'flex', gap: 16}}>
+          <button 
+            className="back-btn" 
+            type="button"
+            onClick={() => navigate('/entrega')} 
+            style={{
+              flex: 1, 
+              padding: '12px 16px', 
+              borderRadius: 8, 
+              border: '1px solid var(--primary)', 
+              background: 'none', 
+              color: 'var(--primary)', 
+              cursor: 'pointer', 
+              fontWeight: 600, 
+              fontSize: 15, 
+              textAlign: 'center'
+            }}
+          >
+            Voltar
+          </button>
+          <button 
+            className="add-btn" 
+            style={{flex: 2, justifyContent: 'center', minWidth: 'auto'}} 
+            onClick={confirmarPedido} 
+            disabled={
+              loading || 
+              (orderDetails.tipoPagamento === 'Dinheiro' && precisaDeTroco && (Number(trocoInput) < totalFinal || !trocoInput)) ||
+              (precisaValidarCartao && (
+                cartaoDados.numero.replace(/\s/g, '').length < 16 || 
+                !cartaoDados.nome.trim() || 
+                cartaoDados.validade.length < 5 || 
+                cartaoDados.cvv.length < 3
+              ))
+            }
+          >
+            {loading ? 'Processando...' : 'Confirmar Pedido'}
+          </button>
+        </div>
       </div>
     </div>
   );

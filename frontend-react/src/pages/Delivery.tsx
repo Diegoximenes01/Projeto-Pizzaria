@@ -229,9 +229,34 @@ export default function Delivery() {
         </div>
       </div>
 
-      <button className="add-btn" style={{width: '100%', justifyContent: 'center', marginTop: 16}} onClick={handleContinue}>
-        Ir para Pagamento
-      </button>
+      <div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
+        <button 
+          className="back-btn" 
+          type="button"
+          onClick={() => navigate('/carrinho')} 
+          style={{
+            flex: 1, 
+            padding: '12px 16px', 
+            borderRadius: 8, 
+            border: '1px solid var(--primary)', 
+            background: 'none', 
+            color: 'var(--primary)', 
+            cursor: 'pointer', 
+            fontWeight: 600, 
+            fontSize: 16, 
+            textAlign: 'center'
+          }}
+        >
+          Voltar
+        </button>
+        <button 
+          className="add-btn" 
+          style={{ flex: 2, justifyContent: 'center' }} 
+          onClick={handleContinue}
+        >
+          Ir para Pagamento
+        </button>
+      </div>
     </div>
   );
 }

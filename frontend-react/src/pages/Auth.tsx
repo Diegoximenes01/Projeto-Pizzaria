@@ -9,6 +9,8 @@ const LOGIN = gql`
       id
       nome
       cpf
+      email
+      telefone
       endereco
       enderecos
     }
@@ -48,7 +50,7 @@ const VERIFICAR_CPF = gql`
 export default function Auth() {
   const location = useLocation();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const { user, setUser } = useContext(StoreContext);
+  const { user, setUser, cart } = useContext(StoreContext);
   const navigate = useNavigate();
   const client = useApolloClient();
   
@@ -62,9 +64,13 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/entrega');
+      if (cart && cart.length > 0) {
+        navigate('/entrega');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, navigate]);
+  }, [user, cart, navigate]);
 
   useEffect(() => {
     if (location.state && typeof (location.state as any).signup === 'boolean') {
@@ -84,7 +90,11 @@ export default function Auth() {
           variables: { cpf: formData.cpf, senha: formData.senha }
         });
         setUser(data.login);
-        navigate('/entrega');
+        if (cart && cart.length > 0) {
+          navigate('/entrega');
+        } else {
+          navigate('/');
+        }
       } else if (mode === 'signup') {
         if (formData.senha !== formData.confirmarSenha) {
           setError('As senhas não coincidem. Por favor, tente novamente!');
@@ -92,7 +102,11 @@ export default function Auth() {
         }
         const { data } = await cadastrar({ variables: formData });
         setUser(data.cadastrarUsuario);
-        navigate('/entrega');
+        if (cart && cart.length > 0) {
+          navigate('/entrega');
+        } else {
+          navigate('/');
+        }
       } else if (mode === 'forgot') {
         if (formData.senha !== formData.confirmarSenha) {
           setError('As senhas não coincidem. Por favor, tente novamente!');
