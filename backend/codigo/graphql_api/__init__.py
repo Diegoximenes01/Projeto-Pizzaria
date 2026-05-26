@@ -1,0 +1,1 @@
+# Pacote graphql do servidor

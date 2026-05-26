@@ -1,47 +1,20 @@
-# Estágio de Build
-FROM node:18-alpine AS builder
+FROM python:3.10-slim
 
-# Configura diretório de trabalho
 WORKDIR /usr/src/app
 
-# Copia arquivos de dependência
-COPY package*.json ./
+# Instalar dependências necessárias do sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala todas as dependências (incluindo dev para o build TS)
-RUN npm install
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o código fonte
+# Copiar todo o conteúdo do servidor
 COPY . .
 
-# Faz a compilação do TypeScript para a pasta dist
-RUN npx tsc
-
-# Copia o schema.graphql para a pasta dist (já que o TSC não copia arquivos que não são .ts)
-RUN cp -r src/graphql/schema.graphql dist/graphql/
-
-# Estágio de Produção
-FROM node:18-alpine
-
-WORKDIR /usr/src/app
-
-# Copia os arquivos de dependência
-COPY package*.json ./
-
-# Instala apenas dependências de produção
-RUN npm install --only=production
-
-# Copia a pasta prisma e gera o client
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# Copia os arquivos compilados do estágio anterior
-COPY --from=builder /usr/src/app/dist ./dist
-
-# Expõe a porta que a aplicação vai rodar
 EXPOSE 4000
 
-# Define variável de ambiente para produção
-ENV NODE_ENV=production
-
-# Executa a aplicação
-CMD ["node", "dist/index.js"]
+# Executar o principal.py como módulo em modo não buferizado para resolver as importações corretamente
+CMD ["python", "-u", "-m", "codigo.principal"]
