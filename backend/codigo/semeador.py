@@ -47,6 +47,9 @@ def semear():
             );
         ''')
 
+        cursor.execute('ALTER TABLE "Usuario" ADD COLUMN IF NOT EXISTS "cartaoUltimosDigitos" VARCHAR(4);')
+        cursor.execute('ALTER TABLE "Usuario" ADD COLUMN IF NOT EXISTS "cartaoTipo" VARCHAR(10);')
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS "Pizza" (
                 "id" VARCHAR(36) PRIMARY KEY,

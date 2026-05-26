@@ -6,6 +6,8 @@ type Usuario {
   telefone: String
   endereco: String!
   enderecos: [String!]
+  cartaoUltimosDigitos: String
+  cartaoTipo: String
 }
 
 type Pizza {
@@ -54,6 +56,7 @@ type Mutation {
   atualizarPerfil(usuarioId: ID!, nome: String!, email: String!, telefone: String!): Usuario!
   redefinirSenha(cpf: String!, novaSenha: String!): Usuario!
   atualizarEnderecos(usuarioId: ID!, enderecos: [String!]!): Usuario!
+  salvarCartao(usuarioId: ID!, cartaoUltimosDigitos: String!, cartaoTipo: String!): Usuario!
   criarPedido(
     itens: [PedidoItemInput!]!
     usuarioId: ID

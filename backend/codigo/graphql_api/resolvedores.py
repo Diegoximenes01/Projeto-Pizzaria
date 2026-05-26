@@ -61,6 +61,10 @@ def resolve_redefinir_senha(obj, info, cpf, novaSenha):
 def resolve_atualizar_enderecos(obj, info, usuarioId, enderecos):
     return banco.atualizar_enderecos(usuarioId, enderecos)
 
+@mutation.field("salvarCartao")
+def resolve_salvar_cartao(obj, info, usuarioId, cartaoUltimosDigitos, cartaoTipo):
+    return banco.salvar_cartao(usuarioId, cartaoUltimosDigitos, cartaoTipo)
+
 @mutation.field("criarPedido")
 def resolve_criar_pedido(obj, info, itens, usuarioId=None, tipoEntrega=None, taxaEntrega=None, tipoPagamento=None, trocoPara=None):
     return banco.criar_pedido(itens, usuarioId, tipoEntrega, taxaEntrega, tipoPagamento, trocoPara)

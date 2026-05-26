@@ -26,10 +26,21 @@ const CRIAR_PEDIDO = gql`
   }
 `;
 
+const SALVAR_CARTAO = gql`
+  mutation SalvarCartao($usuarioId: ID!, $cartaoUltimosDigitos: String!, $cartaoTipo: String!) {
+    salvarCartao(usuarioId: $usuarioId, cartaoUltimosDigitos: $cartaoUltimosDigitos, cartaoTipo: $cartaoTipo) {
+      id
+      cartaoUltimosDigitos
+      cartaoTipo
+    }
+  }
+`;
+
 export default function Payment() {
-  const { cart, user, orderDetails, setOrderDetails, clearStore } = useContext(StoreContext);
+  const { cart, user, setUser, orderDetails, setOrderDetails, clearStore } = useContext(StoreContext);
   const navigate = useNavigate();
   const [criarPedido, { loading }] = useMutation(CRIAR_PEDIDO);
+  const [salvarCartao] = useMutation(SALVAR_CARTAO);
 
   const [precisaDeTroco, setPrecisaDeTroco] = useState(false);
   const [trocoInput, setTrocoInput] = useState('');
@@ -43,6 +54,16 @@ export default function Payment() {
     validade: '',
     cvv: ''
   });
+
+  const [usarCartaoSalvo, setUsarCartaoSalvo] = useState(false);
+
+  useEffect(() => {
+    if (user?.cartaoUltimosDigitos) {
+      setUsarCartaoSalvo(true);
+    } else {
+      setUsarCartaoSalvo(false);
+    }
+  }, [user]);
 
   const checkoutSuccessRef = useRef(false);
 
@@ -111,7 +132,7 @@ export default function Payment() {
   const precisaValidarCartao = orderDetails.tipoPagamento === 'Cartão' && (
     (orderDetails.tipoEntrega === 'Entrega' && opcaoCartao === 'online') ||
     (orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online')
-  );
+  ) && !usarCartaoSalvo;
 
   const confirmarPedido = async () => {
     if (orderDetails.tipoPagamento === 'Dinheiro' && precisaDeTroco) {
@@ -153,12 +174,41 @@ export default function Payment() {
       }
     }
 
+    const isPayingOnlineWithNewCard = orderDetails.tipoPagamento === 'Cartão' && (
+      (orderDetails.tipoEntrega === 'Entrega' && opcaoCartao === 'online') ||
+      (orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online')
+    ) && !usarCartaoSalvo;
+
+    if (isPayingOnlineWithNewCard) {
+      try {
+        const ultimosDigitos = cartaoDados.numero.replace(/\s/g, '').slice(-4);
+        const { data } = await salvarCartao({
+          variables: {
+            usuarioId: user.id,
+            cartaoUltimosDigitos: ultimosDigitos,
+            cartaoTipo: tipoCartao
+          }
+        });
+        if (data && data.salvarCartao) {
+          const updatedUser = {
+            ...user,
+            cartaoUltimosDigitos: data.salvarCartao.cartaoUltimosDigitos,
+            cartaoTipo: data.salvarCartao.cartaoTipo
+          };
+          setUser(updatedUser);
+        }
+      } catch (err) {
+        console.error("Erro ao salvar cartão:", err);
+      }
+    }
+
     try {
       let tipoPg = orderDetails.tipoPagamento;
       if (orderDetails.tipoEntrega === 'Retirada') {
         if (localPagamento === 'online') {
           if (orderDetails.tipoPagamento === 'Cartão') {
-            tipoPg = `Cartão de Crédito (Online)`;
+            const mod = usarCartaoSalvo ? (user.cartaoTipo || 'crédito') : tipoCartao;
+            tipoPg = `Cartão de ${mod === 'crédito' || mod === 'Crédito' ? 'Crédito' : 'Débito'} (Online)`;
           } else {
             tipoPg = 'Pix (Online)';
           }
@@ -173,9 +223,12 @@ export default function Payment() {
         }
       } else {
         if (orderDetails.tipoPagamento === 'Cartão') {
-          tipoPg = opcaoCartao === 'online'
-            ? `Cartão de ${tipoCartao === 'crédito' ? 'Crédito' : 'Débito'} (Online)`
-            : 'Cartão (Na entrega)';
+          if (opcaoCartao === 'online') {
+            const mod = usarCartaoSalvo ? (user.cartaoTipo || 'crédito') : tipoCartao;
+            tipoPg = `Cartão de ${mod === 'crédito' || mod === 'Crédito' ? 'Crédito' : 'Débito'} (Online)`;
+          } else {
+            tipoPg = 'Cartão (Na entrega)';
+          }
         }
       }
 
@@ -196,6 +249,131 @@ export default function Payment() {
     } catch (e) {
       alert('Erro ao fechar pedido: ' + e.message);
     }
+  };
+
+  const renderCamposCartaoOnline = () => {
+    return (
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        {user?.cartaoUltimosDigitos && (
+          <div style={{
+            background: 'var(--input-bg)',
+            padding: '14px 18px',
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            marginBottom: 8
+          }}>
+            <span style={{fontSize: 14, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 10}}>💳 Cartão Cadastrado</span>
+            <div style={{display: 'flex', gap: 20, alignItems: 'center'}}>
+              <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                <input 
+                  type="radio" 
+                  name="usarCartaoSalvo" 
+                  checked={usarCartaoSalvo} 
+                  onChange={() => setUsarCartaoSalvo(true)} 
+                />
+                Pagar com {user.cartaoTipo === 'crédito' || user.cartaoTipo === 'Crédito' ? 'Crédito' : 'Débito'} final **** {user.cartaoUltimosDigitos}
+              </label>
+              <label style={{display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                <input 
+                  type="radio" 
+                  name="usarCartaoSalvo" 
+                  checked={!usarCartaoSalvo} 
+                  onChange={() => setUsarCartaoSalvo(false)} 
+                />
+                Outro cartão
+              </label>
+            </div>
+          </div>
+        )}
+
+        {!usarCartaoSalvo ? (
+          <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+            <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4}}>
+              <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', fontWeight: 600}}>Modalidade do Cartão</label>
+              <div style={{display: 'flex', gap: 16}}>
+                <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                  <input 
+                    type="radio" 
+                    name="tipoCartao" 
+                    checked={tipoCartao === 'crédito'} 
+                    onChange={() => setTipoCartao('crédito')} 
+                  />
+                  Crédito
+                </label>
+                <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
+                  <input 
+                    type="radio" 
+                    name="tipoCartao" 
+                    checked={tipoCartao === 'débito'} 
+                    onChange={() => setTipoCartao('débito')} 
+                  />
+                  Débito
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão</label>
+              <input 
+                type="text" 
+                placeholder="0000 0000 0000 0000"
+                value={cartaoDados.numero}
+                onChange={e => handleNumeroCartaoChange(e.target.value)}
+                style={cardInputStyle}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Nome Impresso no Cartão</label>
+              <input 
+                type="text" 
+                placeholder="Nome impresso no cartão"
+                value={cartaoDados.nome}
+                onChange={e => setCartaoDados({ ...cartaoDados, nome: e.target.value.toUpperCase() })}
+                style={cardInputStyle}
+              />
+            </div>
+            <div style={{display: 'flex', gap: 12}}>
+              <div style={{flex: 1}}>
+                <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Validade</label>
+                <input 
+                  type="text" 
+                  placeholder="MM/AA"
+                  value={cartaoDados.validade}
+                  onChange={e => handleValidadeChange(e.target.value)}
+                  style={cardInputStyle}
+                />
+              </div>
+              <div style={{flex: 1}}>
+                <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>CVV</label>
+                <input 
+                  type="text" 
+                  placeholder="123"
+                  value={cartaoDados.cvv}
+                  onChange={e => handleCvvChange(e.target.value)}
+                  style={cardInputStyle}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            background: 'rgba(46, 204, 113, 0.08)',
+            padding: '12px 16px',
+            borderRadius: 8,
+            border: '1px dashed #2ecc71',
+            color: '#27ae60',
+            fontSize: 14,
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <span>✔</span>
+            <span>Pronto para pagar online usando seu cartão salvo de final **** {user.cartaoUltimosDigitos}.</span>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -325,7 +503,7 @@ export default function Payment() {
         >
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <div style={{fontWeight: 600, fontSize: 18}}>
-              {orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online' ? '💳 Cartão de Crédito' : '💳 Cartão de Crédito ou Débito'}
+              💳 Cartão de Crédito ou Débito
             </div>
             {orderDetails.tipoPagamento === 'Cartão' && <span style={{color: 'var(--primary)', fontWeight: 600}}>Selecionado</span>}
           </div>
@@ -336,50 +514,7 @@ export default function Payment() {
                   O pagamento via cartão (crédito ou débito) será realizado diretamente na maquininha no balcão da loja no momento da retirada.
                 </p>
               ) : orderDetails.tipoEntrega === 'Retirada' && localPagamento === 'online' ? (
-                <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-                  <div>
-                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão de Crédito</label>
-                    <input 
-                      type="text" 
-                      placeholder="0000 0000 0000 0000"
-                      value={cartaoDados.numero}
-                      onChange={e => handleNumeroCartaoChange(e.target.value)}
-                      style={cardInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Nome Impresso no Cartão</label>
-                    <input 
-                      type="text" 
-                      placeholder="Nome impresso no cartão"
-                      value={cartaoDados.nome}
-                      onChange={e => setCartaoDados({ ...cartaoDados, nome: e.target.value.toUpperCase() })}
-                      style={cardInputStyle}
-                    />
-                  </div>
-                  <div style={{display: 'flex', gap: 12}}>
-                    <div style={{flex: 1}}>
-                      <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Validade</label>
-                      <input 
-                        type="text" 
-                        placeholder="MM/AA"
-                        value={cartaoDados.validade}
-                        onChange={e => handleValidadeChange(e.target.value)}
-                        style={cardInputStyle}
-                      />
-                    </div>
-                    <div style={{flex: 1}}>
-                      <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>CVV</label>
-                      <input 
-                        type="text" 
-                        placeholder="123"
-                        value={cartaoDados.cvv}
-                        onChange={e => handleCvvChange(e.target.value)}
-                        style={cardInputStyle}
-                      />
-                    </div>
-                  </div>
-                </div>
+                renderCamposCartaoOnline()
               ) : (
                 <>
                   <div style={{display: 'flex', gap: 24, marginBottom: 16}}>
@@ -404,74 +539,7 @@ export default function Payment() {
                   </div>
 
                   {opcaoCartao === 'online' ? (
-                    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-                      <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4}}>
-                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)'}}>Modalidade do Cartão</label>
-                        <div style={{display: 'flex', gap: 16}}>
-                          <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                            <input 
-                              type="radio" 
-                              name="tipoCartao" 
-                              checked={tipoCartao === 'crédito'} 
-                              onChange={() => setTipoCartao('crédito')} 
-                            />
-                            Crédito
-                          </label>
-                          <label style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500}}>
-                            <input 
-                              type="radio" 
-                              name="tipoCartao" 
-                              checked={tipoCartao === 'débito'} 
-                              onChange={() => setTipoCartao('débito')} 
-                            />
-                            Débito
-                          </label>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Número do Cartão</label>
-                        <input 
-                          type="text" 
-                          placeholder="0000 0000 0000 0000"
-                          value={cartaoDados.numero}
-                          onChange={e => handleNumeroCartaoChange(e.target.value)}
-                          style={cardInputStyle}
-                        />
-                      </div>
-                      <div>
-                        <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Nome Impresso no Cartão</label>
-                        <input 
-                          type="text" 
-                          placeholder="Nome impresso no cartão"
-                          value={cartaoDados.nome}
-                          onChange={e => setCartaoDados({ ...cartaoDados, nome: e.target.value.toUpperCase() })}
-                          style={cardInputStyle}
-                        />
-                      </div>
-                      <div style={{display: 'flex', gap: 12}}>
-                        <div style={{flex: 1}}>
-                          <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>Validade</label>
-                          <input 
-                            type="text" 
-                            placeholder="MM/AA"
-                            value={cartaoDados.validade}
-                            onChange={e => handleValidadeChange(e.target.value)}
-                            style={cardInputStyle}
-                          />
-                        </div>
-                        <div style={{flex: 1}}>
-                          <label style={{display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4}}>CVV</label>
-                          <input 
-                            type="text" 
-                            placeholder="123"
-                            value={cartaoDados.cvv}
-                            onChange={e => handleCvvChange(e.target.value)}
-                            style={cardInputStyle}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    renderCamposCartaoOnline()
                   ) : (
                     <p style={{color: 'var(--text-muted)', fontSize: 14, margin: '8px 0 0 0'}}>
                       O entregador levará a maquininha para que o pagamento seja realizado no momento da entrega.

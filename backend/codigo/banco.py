@@ -169,6 +169,26 @@ def atualizar_perfil(usuario_id, nome, email, telefone):
         cursor.close()
         conn.close()
 
+def salvar_cartao(usuario_id, cartao_ultimos_digitos, cartao_tipo):
+    conn = obter_conexao()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            'UPDATE "Usuario" SET "cartaoUltimosDigitos" = %s, "cartaoTipo" = %s WHERE "id" = %s RETURNING *',
+            (cartao_ultimos_digitos, cartao_tipo, usuario_id)
+        )
+        usuario = row_to_dict(cursor, cursor.fetchone())
+        if not usuario:
+            raise Exception("Usuário não encontrado")
+        conn.commit()
+        return usuario
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+
 # --- QUERIES DE PEDIDO ---
 
 def buscar_pedidos():

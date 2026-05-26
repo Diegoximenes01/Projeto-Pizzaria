@@ -28,6 +28,8 @@ const LOGIN = gql`
       telefone
       endereco
       enderecos
+      cartaoUltimosDigitos
+      cartaoTipo
     }
   }
 `;
@@ -42,6 +44,8 @@ const CADASTRAR = gql`
       telefone
       endereco
       enderecos
+      cartaoUltimosDigitos
+      cartaoTipo
     }
   }
 `;
