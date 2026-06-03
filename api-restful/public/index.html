@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Furreti REST Client 🍕</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f0c1b;
+      --bg-card: rgba(30, 25, 50, 0.6);
+      --primary: #ff5e3a;
+      --primary-hover: #ff7e5f;
+      --secondary: #ffb834;
+      --text: #f3f1f6;
+      --text-muted: #a09cb0;
+      --accent-green: #2ecc71;
+      --accent-red: #e74c3c;
+      --border-color: rgba(255, 94, 58, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(255, 94, 58, 0.15) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(255, 184, 52, 0.1) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+
+    .badge-rest {
+      background: rgba(255, 94, 58, 0.15);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-color);
+      box-shadow: 0 12px 40px 0 rgba(255, 94, 58, 0.05);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(255, 94, 58, 0.05);
+      box-shadow: 0 0 0 3px rgba(255, 94, 58, 0.15);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 94, 58, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* List & Cards */
+    .pizza-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 992px) {
+      .pizza-list {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .pizza-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .pizza-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+      border-color: rgba(255, 184, 52, 0.3);
+    }
+
+    .pizza-info h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .pizza-price {
+      color: var(--secondary);
+      font-weight: 800;
+    }
+
+    .pizza-ingredients {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+
+    .pizza-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .btn-edit {
+      background: rgba(255, 184, 52, 0.15);
+      color: var(--secondary);
+    }
+
+    .btn-edit:hover {
+      background: var(--secondary);
+      color: #000;
+    }
+
+    .btn-delete {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--accent-red);
+    }
+
+    .btn-delete:hover {
+      background: var(--accent-red);
+      color: #fff;
+    }
+
+    /* Logs Console */
+    .console-container {
+      margin-top: auto;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+    }
+
+    .console-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .console-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .console-box {
+      background: #080611;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .console-line {
+      display: flex;
+      flex-direction: column;
+      border-left: 2px solid var(--primary);
+      padding-left: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .console-meta {
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+
+    .console-meta.get { color: #5dade2; }
+    .console-meta.post { color: #2ecc71; }
+    .console-meta.put { color: #f39c12; }
+    .console-meta.delete { color: #e74c3c; }
+
+    .console-data {
+      color: #9cdcfe;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state p {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Furreti Cucina REST Client 🍕</h1>
+        <div class="subtitle">Gerencie o cardápio de pizzas consumindo uma API RESTful</div>
+      </div>
+      <div class="badge-rest">REST / HTTP</div>
+    </header>
+
+    <div class="main-grid">
+      <!-- Formulário de Cadastro/Edição -->
+      <section class="card">
+        <h2 id="form-title">Cadastrar Pizza</h2>
+        <form id="pizza-form">
+          <input type="hidden" id="pizza-id">
+          
+          <div class="form-group">
+            <label for="pizza-nome">Nome da Pizza</label>
+            <input type="text" id="pizza-nome" class="form-control" placeholder="Ex: Portuguesa" required>
+          </div>
+
+          <div class="form-group">
+            <label for="pizza-preco">Preço (R$)</label>
+            <input type="number" id="pizza-preco" class="form-control" placeholder="Ex: 39.90" step="0.01" min="0.01" required>
+          </div>
+
+          <div class="form-group">
+            <label for="pizza-ingredientes">Ingredientes</label>
+            <textarea id="pizza-ingredientes" class="form-control" placeholder="Ex: Molho de tomate, presunto, ovos, cebola..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-submit">
+            <span>Adicionar ao Menu</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-cancel" style="display: none;">
+            Cancelar Edição
+          </button>
+        </form>
+      </section>
+
+      <!-- Lista de Pizzas -->
+      <section class="card">
+        <h2>Cardápio Disponível</h2>
+        <div class="pizza-list" id="pizza-list">
+          <!-- Dinamicamente renderizado via JS -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Console HTTP para visualização dos Requests / Responses -->
+    <div class="console-container">
+      <div class="console-title">
+        <div class="console-dot"></div>
+        HTTP Traffic Monitor (Logs da API RESTful)
+      </div>
+      <div class="console-box" id="console-box">
+        <div style="color: #6a9955;">// Logs de requisições GET, POST, PUT, DELETE aparecerão aqui em tempo real...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api/pizzas';
+
+    // Elementos do DOM
+    const pizzaForm = document.getElementById('pizza-form');
+    const pizzaIdInput = document.getElementById('pizza-id');
+    const pizzaNomeInput = document.getElementById('pizza-nome');
+    const pizzaPrecoInput = document.getElementById('pizza-preco');
+    const pizzaIngredientesInput = document.getElementById('pizza-ingredientes');
+    const pizzaList = document.getElementById('pizza-list');
+    const formTitle = document.getElementById('form-title');
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnCancel = document.getElementById('btn-cancel');
+    const consoleBox = document.getElementById('console-box');
+
+    // Estado da Aplicação
+    let pizzas = [];
+
+    // Registrar logs no monitor de tráfego HTTP
+    function logHttpTraffic(method, url, status, requestBody, responseData) {
+      const timestamp = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.className = 'console-line';
+      
+      const methodLower = method.toLowerCase();
+      
+      let reqBodyString = requestBody ? `\nRequest Payload: ${JSON.stringify(requestBody, null, 2)}` : '';
+      let respDataString = responseData ? `\nResponse Body: ${JSON.stringify(responseData, null, 2)}` : '';
+
+      line.innerHTML = `
+        <div class="console-meta ${methodLower}">
+          [${timestamp}] ${method} ${url} -> Status ${status}
+        </div>
+        <div class="console-data">${reqBodyString}${respDataString}</div>
+      `;
+
+      consoleBox.appendChild(line);
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // Carregar todas as pizzas
+    async function loadPizzas() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        logHttpTraffic('GET', API_URL, response.status, null, data);
+        
+        if (response.ok) {
+          pizzas = data;
+          renderPizzas();
+        } else {
+          alert('Erro ao carregar cardápio');
+        }
+      } catch (error) {
+        console.error('Erro de rede:', error);
+        logHttpTraffic('GET', API_URL, 'Network Error', null, { erro: error.message });
+      }
+    }
+
+    // Renderizar a lista no HTML
+    function renderPizzas() {
+      pizzaList.innerHTML = '';
+      
+      if (pizzas.length === 0) {
+        pizzaList.innerHTML = `
+          <div class="empty-state">
+            <p>Nenhuma pizza cadastrada no menu.</p>
+          </div>
+        `;
+        return;
+      }
+
+      pizzas.forEach(pizza => {
+        const item = document.createElement('div');
+        item.className = 'pizza-item';
+        item.innerHTML = `
+          <div class="pizza-info">
+            <h3>
+              <span>${pizza.nome}</span>
+              <span class="pizza-price">R$ ${parseFloat(pizza.preco).toFixed(2)}</span>
+            </h3>
+            <p class="pizza-ingredients">${pizza.ingredientes || 'Sem ingredientes definidos.'}</p>
+          </div>
+          <div class="pizza-actions">
+            <button class="btn-sm btn-edit" onclick="startEdit(${pizza.id})">
+              Editar
+            </button>
+            <button class="btn-sm btn-delete" onclick="deletePizza(${pizza.id})">
+              Excluir
+            </button>
+          </div>
+        `;
+        pizzaList.appendChild(item);
+      });
+    }
+
+    // Submeter formulário (Criar ou Editar)
+    pizzaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = pizzaIdInput.value;
+      const nome = pizzaNomeInput.value;
+      const preco = pizzaPrecoInput.value;
+      const ingredientes = pizzaIngredientesInput.value;
+      
+      const payload = { nome, preco, ingredientes };
+
+      if (id) {
+        // Modo Edição (PUT)
+        const url = `${API_URL}/${id}`;
+        try {
+          const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await response.json();
+          
+          logHttpTraffic('PUT', url, response.status, payload, data);
+
+          if (response.ok) {
+            cancelEdit();
+            loadPizzas();
+          } else {
+            alert(data.erro || 'Erro ao atualizar pizza.');
+          }
+        } catch (error) {
+          logHttpTraffic('PUT', url, 'Network Error', payload, { erro: error.message });
+        }
+      } else {
+        // Modo Criação (POST)
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await response.json();
+
+          logHttpTraffic('POST', API_URL, response.status, payload, data);
+
+          if (response.ok) {
+            pizzaForm.reset();
+            loadPizzas();
+          } else {
+            alert(data.erro || 'Erro ao cadastrar pizza.');
+          }
+        } catch (error) {
+          logHttpTraffic('POST', API_URL, 'Network Error', payload, { erro: error.message });
+        }
+      }
+    });
+
+    // Iniciar edição
+    function startEdit(id) {
+      const pizza = pizzas.find(p => p.id === id);
+      if (!pizza) return;
+
+      pizzaIdInput.value = pizza.id;
+      pizzaNomeInput.value = pizza.nome;
+      pizzaPrecoInput.value = pizza.preco;
+      pizzaIngredientesInput.value = pizza.ingredientes || '';
+
+      formTitle.innerText = 'Editar Pizza';
+      btnSubmit.querySelector('span').innerText = 'Salvar Alterações';
+      btnCancel.style.display = 'block';
+    }
+
+    // Cancelar edição
+    function cancelEdit() {
+      pizzaIdInput.value = '';
+      pizzaForm.reset();
+      formTitle.innerText = 'Cadastrar Pizza';
+      btnSubmit.querySelector('span').innerText = 'Adicionar ao Menu';
+      btnCancel.style.display = 'none';
+    }
+
+    btnCancel.addEventListener('click', cancelEdit);
+
+    // Excluir pizza (DELETE)
+    async function deletePizza(id) {
+      if (!confirm('Deseja realmente remover esta pizza do cardápio?')) return;
+      
+      const url = `${API_URL}/${id}`;
+      try {
+        const response = await fetch(url, {
+          method: 'DELETE'
+        });
+        const data = await response.json();
+
+        logHttpTraffic('DELETE', url, response.status, null, data);
+
+        if (response.ok) {
+          loadPizzas();
+          // Se estava editando a pizza excluída, cancela
+          if (pizzaIdInput.value == id) {
+            cancelEdit();
+          }
+        } else {
+          alert(data.erro || 'Erro ao excluir pizza.');
+        }
+      } catch (error) {
+        logHttpTraffic('DELETE', url, 'Network Error', null, { erro: error.message });
+      }
+    }
+
+    // Inicialização
+    loadPizzas();
+  </script>
+</body>
+</html>

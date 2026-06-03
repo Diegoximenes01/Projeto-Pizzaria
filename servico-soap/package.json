@@ -1,0 +1,14 @@
+{
+  "name": "calculadora-soap-service",
+  "version": "1.0.0",
+  "description": "Serviço SOAP de Calculadora para a cadeira de Computação em Nuvem",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "soap": "^1.0.0"
+  }
+}

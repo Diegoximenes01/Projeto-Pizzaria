@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="CalculadoraService"
+             targetNamespace="http://www.examples.com/wsdl/CalculadoraService.wsdl"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://www.examples.com/wsdl/CalculadoraService.wsdl"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <!-- Mensagens para a operação Somar -->
+  <message name="SomarRequest">
+    <part name="a" type="xsd:float"/>
+    <part name="b" type="xsd:float"/>
+  </message>
+  <message name="SomarResponse">
+    <part name="resultado" type="xsd:float"/>
+  </message>
+
+  <!-- Mensagens para a operação Subtrair -->
+  <message name="SubtrairRequest">
+    <part name="a" type="xsd:float"/>
+    <part name="b" type="xsd:float"/>
+  </message>
+  <message name="SubtrairResponse">
+    <part name="resultado" type="xsd:float"/>
+  </message>
+
+  <!-- Port Type define a interface das operações -->
+  <portType name="CalculadoraPortType">
+    <operation name="Somar">
+      <input message="tns:SomarRequest"/>
+      <output message="tns:SomarResponse"/>
+    </operation>
+    <operation name="Subtrair">
+      <input message="tns:SubtrairRequest"/>
+      <output message="tns:SubtrairResponse"/>
+    </operation>
+  </portType>
+
+  <!-- Binding define o protocolo de comunicação (SOAP RPC/encoded) -->
+  <binding name="CalculadoraBinding" type="tns:CalculadoraPortType">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="Somar">
+      <soap:operation soapAction="Somar"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:examples:calculadoraservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:examples:calculadoraservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="Subtrair">
+      <soap:operation soapAction="Subtrair"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:examples:calculadoraservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:examples:calculadoraservice" use="encoded"/>
+      </output>
+    </operation>
+  </binding>
+
+  <!-- Service define o endpoint do serviço SOAP -->
+  <service name="CalculadoraService">
+    <port name="CalculadoraPort" binding="tns:CalculadoraBinding">
+      <soap:address location="http://localhost:8001/soap"/>
+    </port>
+  </service>
+</definitions>
