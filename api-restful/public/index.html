@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" ng-app="pizzaAngularApp">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Furreti REST Client 🍕</title>
+  <title>Furreti Angular Client 🍕</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0f0c1b;
-      --bg-card: rgba(30, 25, 50, 0.6);
+      --bg-card: rgba(30, 25, 50, 0.65);
       --primary: #ff5e3a;
       --primary-hover: #ff7e5f;
       --secondary: #ffb834;
@@ -31,8 +31,8 @@
     body {
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(at 10% 10%, rgba(255, 94, 58, 0.15) 0px, transparent 50%),
-        radial-gradient(at 90% 90%, rgba(255, 184, 52, 0.1) 0px, transparent 50%);
+        radial-gradient(at 5% 5%, rgba(255, 94, 58, 0.15) 0px, transparent 50%),
+        radial-gradient(at 95% 95%, rgba(255, 184, 52, 0.1) 0px, transparent 50%);
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -60,7 +60,7 @@
     }
 
     h1 {
-      font-size: 2.5rem;
+      font-size: 2.3rem;
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
@@ -72,14 +72,14 @@
 
     .subtitle {
       color: var(--text-muted);
-      font-size: 1rem;
+      font-size: 0.95rem;
       margin-top: 0.25rem;
     }
 
-    .badge-rest {
-      background: rgba(255, 94, 58, 0.15);
-      border: 1px solid var(--primary);
-      color: var(--primary);
+    .badge-angular {
+      background: rgba(221, 0, 49, 0.15);
+      border: 1px solid #dd0031;
+      color: #dd0031;
       padding: 0.4rem 0.8rem;
       border-radius: 20px;
       font-weight: 600;
@@ -117,7 +117,7 @@
     }
 
     .card h2 {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 1.5rem;
       color: var(--text);
@@ -201,7 +201,7 @@
     .pizza-list {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     @media (min-width: 992px) {
@@ -213,52 +213,96 @@
     .pizza-item {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 1.25rem;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       justify-content: space-between;
-      transition: all 0.2s ease;
+      gap: 1rem;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       position: relative;
+      overflow: hidden;
     }
 
     .pizza-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-      transform: translateY(-2px);
-      border-color: rgba(255, 184, 52, 0.3);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-3px);
+      border-color: rgba(255, 94, 58, 0.4);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .pizza-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
     }
 
     .pizza-info h3 {
-      font-size: 1.25rem;
-      font-weight: 600;
+      font-size: 1.2rem;
+      font-weight: 700;
       color: var(--text);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.35rem;
+      gap: 0.5rem;
     }
 
     .pizza-price {
       color: var(--secondary);
       font-weight: 800;
+      font-size: 1.25rem;
+      white-space: nowrap;
     }
 
     .pizza-ingredients {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       line-height: 1.4;
       margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pizza-img-container {
+      width: 85px;
+      height: 85px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      background-color: rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pizza-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .pizza-item:hover .pizza-img {
+      transform: rotate(25deg) scale(1.1);
     }
 
     .pizza-actions {
       display: flex;
       gap: 0.5rem;
-      margin-top: auto;
+      margin-top: 0.5rem;
     }
 
     .btn-sm {
       padding: 0.4rem 0.8rem;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
@@ -267,6 +311,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.25rem;
+      transition: all 0.2s ease;
     }
 
     .btn-edit {
@@ -365,42 +410,40 @@
     }
   </style>
 </head>
-<body>
+<body ng-controller="PizzaController">
   <div class="container">
     <header>
       <div>
-        <h1>Furreti Cucina REST Client 🍕</h1>
-        <div class="subtitle">Gerencie o cardápio de pizzas consumindo uma API RESTful</div>
+        <h1>Furreti Cucina Angular Client 🍕</h1>
+        <div class="subtitle">Gerencie o cardápio de pizzas consumindo uma API RESTful em Angular (JS)</div>
       </div>
-      <div class="badge-rest">REST / HTTP</div>
+      <div class="badge-angular">Angular / JS</div>
     </header>
 
     <div class="main-grid">
       <!-- Formulário de Cadastro/Edição -->
       <section class="card">
-        <h2 id="form-title">Cadastrar Pizza</h2>
-        <form id="pizza-form">
-          <input type="hidden" id="pizza-id">
-          
+        <h2>{{ editMode ? 'Editar Pizza' : 'Cadastrar Pizza' }}</h2>
+        <form ng-submit="submitForm()">
           <div class="form-group">
             <label for="pizza-nome">Nome da Pizza</label>
-            <input type="text" id="pizza-nome" class="form-control" placeholder="Ex: Portuguesa" required>
+            <input type="text" id="pizza-nome" class="form-control" placeholder="Ex: Portuguesa" ng-model="formPizza.nome" required>
           </div>
 
           <div class="form-group">
             <label for="pizza-preco">Preço (R$)</label>
-            <input type="number" id="pizza-preco" class="form-control" placeholder="Ex: 39.90" step="0.01" min="0.01" required>
+            <input type="number" id="pizza-preco" class="form-control" placeholder="Ex: 39.90" step="0.01" min="0.01" ng-model="formPizza.preco" required>
           </div>
 
           <div class="form-group">
             <label for="pizza-ingredientes">Ingredientes</label>
-            <textarea id="pizza-ingredientes" class="form-control" placeholder="Ex: Molho de tomate, presunto, ovos, cebola..."></textarea>
+            <textarea id="pizza-ingredientes" class="form-control" placeholder="Ex: Molho de tomate, presunto, ovos..." ng-model="formPizza.ingredientes"></textarea>
           </div>
 
-          <button type="submit" class="btn btn-primary" id="btn-submit">
-            <span>Adicionar ao Menu</span>
+          <button type="submit" class="btn btn-primary">
+            <span>{{ editMode ? 'Salvar Alterações' : 'Adicionar ao Menu' }}</span>
           </button>
-          <button type="button" class="btn btn-secondary" id="btn-cancel" style="display: none;">
+          <button type="button" class="btn btn-secondary" ng-show="editMode" ng-click="cancelEdit()">
             Cancelar Edição
           </button>
         </form>
@@ -409,8 +452,32 @@
       <!-- Lista de Pizzas -->
       <section class="card">
         <h2>Cardápio Disponível</h2>
-        <div class="pizza-list" id="pizza-list">
-          <!-- Dinamicamente renderizado via JS -->
+        <div class="pizza-list">
+          <div class="pizza-item" ng-repeat="pizza in pizzas">
+            <div class="pizza-content">
+              <div class="pizza-info">
+                <h3>
+                  <span>{{ pizza.nome }}</span>
+                  <span class="pizza-price">R$ {{ pizza.preco | number: 2 }}</span>
+                </h3>
+                <p class="pizza-ingredients">{{ pizza.ingredientes || 'Sem ingredientes definidos.' }}</p>
+              </div>
+              <div class="pizza-actions">
+                <button class="btn-sm btn-edit" ng-click="startEdit(pizza)">
+                  Editar
+                </button>
+                <button class="btn-sm btn-delete" ng-click="deletePizza(pizza.id)">
+                  Excluir
+                </button>
+              </div>
+            </div>
+            <div class="pizza-img-container">
+              <img ng-src="{{ getImageForPizza(pizza) }}" alt="{{ pizza.nome }}" class="pizza-img">
+            </div>
+          </div>
+          <div class="empty-state" ng-show="pizzas.length === 0">
+            <p>Nenhuma pizza cadastrada no menu.</p>
+          </div>
         </div>
       </section>
     </div>
@@ -419,223 +486,149 @@
     <div class="console-container">
       <div class="console-title">
         <div class="console-dot"></div>
-        HTTP Traffic Monitor (Logs da API RESTful)
+        HTTP Traffic Monitor (Logs da API RESTful Angular)
       </div>
-      <div class="console-box" id="console-box">
-        <div style="color: #6a9955;">// Logs de requisições GET, POST, PUT, DELETE aparecerão aqui em tempo real...</div>
+      <div class="console-box">
+        <div ng-show="logs.length === 0" style="color: #6a9955;">
+          // Logs de requisições GET, POST, PUT, DELETE aparecerão aqui em tempo real...
+        </div>
+        <div class="console-line" ng-repeat="log in logs">
+          <div class="console-meta {{ log.method | lowercase }}">
+            [{{ log.timestamp }}] {{ log.method }} {{ log.url }} -> Status {{ log.status }}
+          </div>
+          <div class="console-data">
+            <div ng-show="log.requestBody">Request Payload: {{ log.requestBody }}</div>
+            <div ng-show="log.responseBody">Response Body: {{ log.responseBody }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
   <script>
-    const API_URL = '/api/pizzas';
+    const app = angular.module('pizzaAngularApp', []);
 
-    // Elementos do DOM
-    const pizzaForm = document.getElementById('pizza-form');
-    const pizzaIdInput = document.getElementById('pizza-id');
-    const pizzaNomeInput = document.getElementById('pizza-nome');
-    const pizzaPrecoInput = document.getElementById('pizza-preco');
-    const pizzaIngredientesInput = document.getElementById('pizza-ingredientes');
-    const pizzaList = document.getElementById('pizza-list');
-    const formTitle = document.getElementById('form-title');
-    const btnSubmit = document.getElementById('btn-submit');
-    const btnCancel = document.getElementById('btn-cancel');
-    const consoleBox = document.getElementById('console-box');
+    app.controller('PizzaController', function($scope, $http) {
+      const API_URL = '/api/pizzas'; // Caminho relativo (mesmo servidor)
 
-    // Estado da Aplicação
-    let pizzas = [];
+      $scope.pizzas = [];
+      $scope.logs = [];
+      $scope.editMode = false;
+      $scope.formPizza = {};
 
-    // Registrar logs no monitor de tráfego HTTP
-    function logHttpTraffic(method, url, status, requestBody, responseData) {
-      const timestamp = new Date().toLocaleTimeString();
-      const line = document.createElement('div');
-      line.className = 'console-line';
-      
-      const methodLower = method.toLowerCase();
-      
-      let reqBodyString = requestBody ? `\nRequest Payload: ${JSON.stringify(requestBody, null, 2)}` : '';
-      let respDataString = responseData ? `\nResponse Body: ${JSON.stringify(responseData, null, 2)}` : '';
-
-      line.innerHTML = `
-        <div class="console-meta ${methodLower}">
-          [${timestamp}] ${method} ${url} -> Status ${status}
-        </div>
-        <div class="console-data">${reqBodyString}${respDataString}</div>
-      `;
-
-      consoleBox.appendChild(line);
-      consoleBox.scrollTop = consoleBox.scrollHeight;
-    }
-
-    // Carregar todas as pizzas
-    async function loadPizzas() {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
+      // Função para mapear imagens locais das pizzas
+      $scope.getImageForPizza = function(pizza) {
+        if (!pizza || !pizza.nome) return '/pizza-queijo.png';
+        const nome = pizza.nome.toLowerCase().trim();
         
-        logHttpTraffic('GET', API_URL, response.status, null, data);
+        if (nome.includes('mussarela')) return '/pizza-mussarela.png';
+        if (nome.includes('calabresa')) return '/pizza-calabresa.png';
+        if (nome.includes('frango com catupiry')) return '/pizza-catupiryfrango.png';
+        if (nome.includes('quatro queijos') || nome.includes('4 queijos')) return '/pizza-4Queijos.png';
+        if (nome.includes('marguerita') || nome.includes('margherita')) return '/pizza-marguerita.png';
+        if (nome.includes('portuguesa')) return '/pizza-portuguesa.png';
+        if (nome.includes('carne de sol')) return '/pizza-carne-de-sol.jpg';
+        if (nome.includes('pepperoni')) return '/pizza-pepperoni.jpg';
         
-        if (response.ok) {
-          pizzas = data;
-          renderPizzas();
-        } else {
-          alert('Erro ao carregar cardápio');
-        }
-      } catch (error) {
-        console.error('Erro de rede:', error);
-        logHttpTraffic('GET', API_URL, 'Network Error', null, { erro: error.message });
-      }
-    }
+        return '/pizza-queijo.png'; // Fallback padrão
+      };
 
-    // Renderizar a lista no HTML
-    function renderPizzas() {
-      pizzaList.innerHTML = '';
-      
-      if (pizzas.length === 0) {
-        pizzaList.innerHTML = `
-          <div class="empty-state">
-            <p>Nenhuma pizza cadastrada no menu.</p>
-          </div>
-        `;
-        return;
-      }
-
-      pizzas.forEach(pizza => {
-        const item = document.createElement('div');
-        item.className = 'pizza-item';
-        item.innerHTML = `
-          <div class="pizza-info">
-            <h3>
-              <span>${pizza.nome}</span>
-              <span class="pizza-price">R$ ${parseFloat(pizza.preco).toFixed(2)}</span>
-            </h3>
-            <p class="pizza-ingredients">${pizza.ingredientes || 'Sem ingredientes definidos.'}</p>
-          </div>
-          <div class="pizza-actions">
-            <button class="btn-sm btn-edit" onclick="startEdit(${pizza.id})">
-              Editar
-            </button>
-            <button class="btn-sm btn-delete" onclick="deletePizza(${pizza.id})">
-              Excluir
-            </button>
-          </div>
-        `;
-        pizzaList.appendChild(item);
-      });
-    }
-
-    // Submeter formulário (Criar ou Editar)
-    pizzaForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const id = pizzaIdInput.value;
-      const nome = pizzaNomeInput.value;
-      const preco = pizzaPrecoInput.value;
-      const ingredientes = pizzaIngredientesInput.value;
-      
-      const payload = { nome, preco, ingredientes };
-
-      if (id) {
-        // Modo Edição (PUT)
-        const url = `${API_URL}/${id}`;
-        try {
-          const response = await fetch(url, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await response.json();
-          
-          logHttpTraffic('PUT', url, response.status, payload, data);
-
-          if (response.ok) {
-            cancelEdit();
-            loadPizzas();
-          } else {
-            alert(data.erro || 'Erro ao atualizar pizza.');
-          }
-        } catch (error) {
-          logHttpTraffic('PUT', url, 'Network Error', payload, { erro: error.message });
-        }
-      } else {
-        // Modo Criação (POST)
-        try {
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await response.json();
-
-          logHttpTraffic('POST', API_URL, response.status, payload, data);
-
-          if (response.ok) {
-            pizzaForm.reset();
-            loadPizzas();
-          } else {
-            alert(data.erro || 'Erro ao cadastrar pizza.');
-          }
-        } catch (error) {
-          logHttpTraffic('POST', API_URL, 'Network Error', payload, { erro: error.message });
-        }
-      }
-    });
-
-    // Iniciar edição
-    function startEdit(id) {
-      const pizza = pizzas.find(p => p.id === id);
-      if (!pizza) return;
-
-      pizzaIdInput.value = pizza.id;
-      pizzaNomeInput.value = pizza.nome;
-      pizzaPrecoInput.value = pizza.preco;
-      pizzaIngredientesInput.value = pizza.ingredientes || '';
-
-      formTitle.innerText = 'Editar Pizza';
-      btnSubmit.querySelector('span').innerText = 'Salvar Alterações';
-      btnCancel.style.display = 'block';
-    }
-
-    // Cancelar edição
-    function cancelEdit() {
-      pizzaIdInput.value = '';
-      pizzaForm.reset();
-      formTitle.innerText = 'Cadastrar Pizza';
-      btnSubmit.querySelector('span').innerText = 'Adicionar ao Menu';
-      btnCancel.style.display = 'none';
-    }
-
-    btnCancel.addEventListener('click', cancelEdit);
-
-    // Excluir pizza (DELETE)
-    async function deletePizza(id) {
-      if (!confirm('Deseja realmente remover esta pizza do cardápio?')) return;
-      
-      const url = `${API_URL}/${id}`;
-      try {
-        const response = await fetch(url, {
-          method: 'DELETE'
+      // Logger de tráfego HTTP
+      function logHttpTraffic(method, url, status, reqBody, respBody) {
+        const timestamp = new Date().toLocaleTimeString();
+        $scope.logs.unshift({
+          timestamp: timestamp,
+          method: method,
+          url: url,
+          status: status,
+          requestBody: reqBody ? JSON.stringify(reqBody, null, 2) : null,
+          responseBody: respBody ? JSON.stringify(respBody, null, 2) : null
         });
-        const data = await response.json();
-
-        logHttpTraffic('DELETE', url, response.status, null, data);
-
-        if (response.ok) {
-          loadPizzas();
-          // Se estava editando a pizza excluída, cancela
-          if (pizzaIdInput.value == id) {
-            cancelEdit();
-          }
-        } else {
-          alert(data.erro || 'Erro ao excluir pizza.');
-        }
-      } catch (error) {
-        logHttpTraffic('DELETE', url, 'Network Error', null, { erro: error.message });
       }
-    }
 
-    // Inicialização
-    loadPizzas();
+      // GET - Listar
+      $scope.loadPizzas = function() {
+        $http.get(API_URL).then(function(response) {
+          $scope.pizzas = response.data;
+          logHttpTraffic('GET', API_URL, response.status, null, response.data);
+        }, function(error) {
+          logHttpTraffic('GET', API_URL, error.status || 'Network Error', null, error.data || error.statusText);
+        });
+      };
+
+      // POST / PUT - Salvar
+      $scope.submitForm = function() {
+        if (!$scope.formPizza.nome || !$scope.formPizza.preco || $scope.formPizza.preco <= 0) {
+          alert('Preencha os campos obrigatórios corretamente.');
+          return;
+        }
+
+        const payload = {
+          nome: $scope.formPizza.nome,
+          preco: $scope.formPizza.preco,
+          ingredientes: $scope.formPizza.ingredientes || ''
+        };
+
+        if ($scope.editMode && $scope.formPizza.id) {
+          const url = API_URL + '/' + $scope.formPizza.id;
+          $http.put(url, payload).then(function(response) {
+            logHttpTraffic('PUT', url, response.status, payload, response.data);
+            $scope.resetForm();
+            $scope.loadPizzas();
+          }, function(error) {
+            alert(error.data?.erro || 'Erro ao atualizar pizza.');
+            logHttpTraffic('PUT', url, error.status || 'Error', payload, error.data);
+          });
+        } else {
+          $http.post(API_URL, payload).then(function(response) {
+            logHttpTraffic('POST', API_URL, response.status, payload, response.data);
+            $scope.resetForm();
+            $scope.loadPizzas();
+          }, function(error) {
+            alert(error.data?.erro || 'Erro ao cadastrar pizza.');
+            logHttpTraffic('POST', API_URL, error.status || 'Error', payload, error.data);
+          });
+        }
+      };
+
+      // Iniciar edição
+      $scope.startEdit = function(pizza) {
+        $scope.editMode = true;
+        $scope.formPizza = angular.copy(pizza);
+      };
+
+      // Cancelar edição
+      $scope.cancelEdit = function() {
+        $scope.resetForm();
+      };
+
+      // DELETE - Excluir
+      $scope.deletePizza = function(id) {
+        if (!id || !confirm('Deseja realmente remover esta pizza do cardápio?')) return;
+        const url = API_URL + '/' + id;
+
+        $http.delete(url).then(function(response) {
+          logHttpTraffic('DELETE', url, response.status, null, response.data);
+          $scope.loadPizzas();
+          if ($scope.formPizza.id === id) {
+            $scope.resetForm();
+          }
+        }, function(error) {
+          alert(error.data?.erro || 'Erro ao excluir pizza.');
+          logHttpTraffic('DELETE', url, error.status || 'Error', null, error.data);
+        });
+      };
+
+      // Resetar formulário
+      $scope.resetForm = function() {
+        $scope.editMode = false;
+        $scope.formPizza = {};
+      };
+
+      // Inicialização
+      $scope.loadPizzas();
+    });
   </script>
 </body>
 </html>

@@ -1,13 +1,52 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Configurar Helmet para cabeçalhos HTTP mais seguros com CSP apropriado para a interface embutida
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://*"],
+    },
+  },
+}));
+
+// Configurar Rate Limiter: Limitar requisições repetidas a endpoints da API
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // Limite de 100 requisições por IP
+  message: { erro: "Limite de requisições excedido. Tente novamente mais tarde." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Aplicar o limitador de taxa apenas nas rotas de API para evitar bloquear o carregamento de arquivos estáticos
+app.use('/api/', apiLimiter);
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Função auxiliar para sanitizar entradas de texto contra XSS (Cross-Site Scripting)
+function sanitizeInput(text) {
+  if (typeof text !== 'string') return '';
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .trim();
+}
 
 // Servir arquivos estáticos do frontend embutido
 app.use(express.static(path.join(__dirname, 'public')));
@@ -45,19 +84,28 @@ app.get('/api/pizzas/:id', (req, res) => {
 app.post('/api/pizzas', (req, res) => {
   const { nome, preco, ingredientes } = req.body;
 
-  // Validações básicas
+  // Validações e sanitização
   if (!nome || typeof nome !== 'string' || nome.trim() === '') {
     return res.status(400).json({ erro: "O nome da pizza é obrigatório." });
   }
-  if (preco === undefined || isNaN(Number(preco)) || Number(preco) <= 0) {
-    return res.status(400).json({ erro: "O preço deve ser um número maior que zero." });
+  if (nome.length > 50) {
+    return res.status(400).json({ erro: "O nome da pizza não deve exceder 50 caracteres." });
+  }
+  if (preco === undefined || isNaN(Number(preco)) || Number(preco) <= 0 || Number(preco) > 999.99) {
+    return res.status(400).json({ erro: "O preço deve ser um número maior que zero e menor que 1000." });
+  }
+  if (ingredientes !== undefined && typeof ingredientes !== 'string') {
+    return res.status(400).json({ erro: "Os ingredientes devem ser em formato de texto." });
+  }
+  if (ingredientes && ingredientes.length > 200) {
+    return res.status(400).json({ erro: "Os ingredientes não devem exceder 200 caracteres." });
   }
 
   const novaPizza = {
     id: nextId++,
-    nome: nome.trim(),
+    nome: sanitizeInput(nome),
     preco: parseFloat(preco),
-    ingredientes: ingredientes ? ingredientes.trim() : ""
+    ingredientes: ingredientes ? sanitizeInput(ingredientes) : ""
   };
 
   pizzas.push(novaPizza);
@@ -74,21 +122,36 @@ app.put('/api/pizzas/:id', (req, res) => {
     return res.status(404).json({ erro: "Pizza não encontrada para atualização." });
   }
 
-  // Validações básicas se os campos forem fornecidos
-  if (nome !== undefined && (!nome || typeof nome !== 'string' || nome.trim() === '')) {
-    return res.status(400).json({ erro: "O nome da pizza não pode ser vazio." });
+  // Validações e sanitização se os campos forem fornecidos
+  if (nome !== undefined) {
+    if (!nome || typeof nome !== 'string' || nome.trim() === '') {
+      return res.status(400).json({ erro: "O nome da pizza não pode ser vazio." });
+    }
+    if (nome.length > 50) {
+      return res.status(400).json({ erro: "O nome da pizza não deve exceder 50 caracteres." });
+    }
   }
-  if (preco !== undefined && (isNaN(Number(preco)) || Number(preco) <= 0)) {
-    return res.status(400).json({ erro: "O preço deve ser um número maior que zero." });
+  if (preco !== undefined) {
+    if (isNaN(Number(preco)) || Number(preco) <= 0 || Number(preco) > 999.99) {
+      return res.status(400).json({ erro: "O preço deve ser um número maior que zero e menor que 1000." });
+    }
+  }
+  if (ingredientes !== undefined) {
+    if (typeof ingredientes !== 'string') {
+      return res.status(400).json({ erro: "Os ingredientes devem ser em formato de texto." });
+    }
+    if (ingredientes.length > 200) {
+      return res.status(400).json({ erro: "Os ingredientes não devem exceder 200 caracteres." });
+    }
   }
 
   const pizzaAtual = pizzas[pizzaIndex];
   
   pizzas[pizzaIndex] = {
     ...pizzaAtual,
-    nome: nome !== undefined ? nome.trim() : pizzaAtual.nome,
+    nome: nome !== undefined ? sanitizeInput(nome) : pizzaAtual.nome,
     preco: preco !== undefined ? parseFloat(preco) : pizzaAtual.preco,
-    ingredientes: ingredientes !== undefined ? ingredientes.trim() : pizzaAtual.ingredientes
+    ingredientes: ingredientes !== undefined ? sanitizeInput(ingredientes) : pizzaAtual.ingredientes
   };
 
   res.json(pizzas[pizzaIndex]);

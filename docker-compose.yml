@@ -35,6 +35,26 @@ services:
     networks:
       - pizza_network
 
+  api-restful:
+    build:
+      context: ./api-restful
+      dockerfile: Dockerfile
+    container_name: pizza_rest_api
+    ports:
+      - "8000:8000"
+    networks:
+      - pizza_network
+
+  servico-soap:
+    build:
+      context: ./servico-soap
+      dockerfile: Dockerfile
+    container_name: calculadora_soap_service
+    ports:
+      - "8001:8001"
+    networks:
+      - pizza_network
+
 volumes:
   pgdata:
 
