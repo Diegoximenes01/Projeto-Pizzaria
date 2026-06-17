@@ -10,19 +10,19 @@ O projeto é estruturado em microsserviços e aplicações independentes que se 
 
 ```mermaid
 graph TD
-    subgraph Clientes (Front-End)
+    subgraph Clientes ["Clientes (Front-End)"]
         ReactApp["💻 React Client App (Port 5173)"]
         AngularApp["⚙️ Angular Admin Dashboard (Port 4200)"]
         SOAPClient["🔌 SOAP Client (Node.js Script)"]
     end
 
-    subgraph Servidores (Back-End)
+    subgraph Servidores ["Servidores (Back-End)"]
         GraphQLAPI["🐍 GraphQL API - FastAPI (Port 4000)"]
         RESTAPI["⚡ REST API - Express.js (Port 8000)"]
         SOAPAPI["🧼 SOAP API - Express + WSDL (Port 8001)"]
     end
 
-    subgraph Persistência
+    subgraph Persistencia ["Persistência"]
         PostgresDB[("🐘 PostgreSQL (Port 5433 / Interno 5432)")]
     end
 
