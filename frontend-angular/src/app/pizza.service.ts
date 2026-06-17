@@ -14,7 +14,7 @@ export interface Pizza {
 })
 export class PizzaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/pizzas';
+  private apiUrl = 'http://13.61.177.99:8000/api/pizzas';
 
   getPizzas(): Observable<Pizza[]> {
     return this.http.get<Pizza[]>(this.apiUrl);

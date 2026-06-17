@@ -3,8 +3,8 @@ const http = require('http');
 const CONFIG = {
   runs: 50,
   endpoints: [
-    { name: 'REST API (Listar Pizzas)', url: 'http://localhost:8000/api/pizzas', method: 'GET' },
-    { name: 'SOAP API (Obter WSDL)', url: 'http://localhost:8001/soap?wsdl', method: 'GET' }
+    { name: 'REST API (Listar Pizzas)', url: 'http://13.61.177.99:8000/api/pizzas', method: 'GET' },
+    { name: 'SOAP API (Obter WSDL)', url: 'http://13.61.177.99:8001/soap?wsdl', method: 'GET' }
   ]
 };
 

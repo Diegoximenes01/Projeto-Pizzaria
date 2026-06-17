@@ -35,24 +35,36 @@ graph TD
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Stack Tecnológica & Onde Foi Aplicada
 
 ### 1. Front-End
-*   **React (Vite)**: Utilizado para a interface de e-commerce do cliente, com Context API para controle do estado do carrinho e navegação por rotas de compra.
-*   **Angular 19 (Standalone & Minimal)**: Utilizado para o painel de administração e gerenciamento do catálogo de pizzas via requisições RESTful.
-*   **Apollo Client**: Comunicação reativa e cache de dados com o servidor GraphQL.
-*   **Vanilla CSS**: Estilização rica, responsiva e performática, focada em uma estética premium de cores escuras e douradas.
+*   **React (Vite)**: Aplicado no desenvolvimento do **E-Commerce do Cliente** (interface pública de pedidos e carrinho), permitindo navegação fluida de compra e integração reativa de estado com Context API.
+*   **Angular 19 (Standalone)**: Aplicado no **Painel Administrativo da Pizzaria**, servindo como interface de gestão para CRUD de pizzas de forma separada e modular.
+*   **AngularJS (Angular v1.x)**: Aplicado como uma interface administrativa **embutida diretamente no microsserviço da API RESTful** (porta `8000`), demonstrando compatibilidade de tecnologias legadas.
+*   **Apollo Client**: Aplicado na comunicação de dados no React para realizar queries e mutations reativas com o servidor GraphQL.
+*   **Vanilla CSS**: Aplicado na estilização visual premium de todas as interfaces web (React, Angular e AngularJS) usando variáveis CSS e design responsivo sem bibliotecas externas.
 
 ### 2. Back-End
-*   **FastAPI & Ariadne (Python)**: Back-end principal que expõe o servidor GraphQL schema-first para o fluxo transacional (criação de usuários e pedidos).
-*   **Express.js (Node.js)**: Utilizado para construir tanto a API RESTful quanto o servidor SOAP de forma performática.
-*   **soap (npm package)**: Implementação e disponibilização de contratos WSDL.
-*   **psycopg2-binary**: Comunicação e queries SQL nativas com o banco relacional.
+*   **FastAPI & Ariadne (Python)**: Aplicado no **Servidor GraphQL principal** (porta `4000`), responsável pelo gerenciamento de usuários, endereços, cartões de crédito e pedidos transacionais.
+*   **Express.js (Node.js)**: Aplicado na construção da **API RESTful de Pizzas** (porta `8000`) e no **Servidor SOAP da Calculadora** (porta `8001`).
+*   **soap (Biblioteca npm)**: Aplicada no microsserviço SOAP para expor a calculadora de frete/taxas sob demanda por meio de um contrato WSDL estruturado.
+*   **psycopg2-binary**: Aplicado no backend FastAPI para estabelecer queries SQL nativas e de alta performance direto com o banco relacional.
 
 ### 3. Banco de Dados & Infraestrutura
-*   **PostgreSQL**: Banco de dados relacional oficial que persiste dados de usuários, cartões e pedidos.
-*   **Docker & Docker Compose**: Containerização isolada de todos os serviços locais, garantindo consistência ambiental.
-*   **AWS App Runner / Elastic Beanstalk**: Modelos documentados para implantação automatizada na nuvem.
+*   **PostgreSQL**: Banco de dados relacional que persiste as tabelas de Usuários, Pizzas (cardápio), Pedidos e Itens do Pedido.
+*   **Docker & Docker Compose**: Utilizado para containerizar e isolar todos os serviços do back-end (`backend`, `api-restful`, `servico-soap` e `postgres-db`) em uma rede virtual unificada (`pizza_network`), garantindo consistência idêntica entre o desenvolvimento local e a produção.
+
+### 4. Nuvem AWS (Implantação Real) ☁️
+Para a cadeira de Computação em Nuvem, realizamos o deploy completo do ecossistema de back-end em produção real na AWS:
+*   **AWS EC2 (Elastic Compute Cloud)**: Provisionamento de um servidor virtual rodando a imagem oficial do **Amazon Linux 2023** (instância `t3.micro`), onde os containers Docker do backend foram implantados.
+*   **AWS EBS (Elastic Block Store)**: Armazenamento persistente de **20 GiB** associado à instância para suportar o sistema operacional, imagens Docker e os dados persistidos do PostgreSQL.
+*   **Security Groups (Firewall da AWS)**: Regras de tráfego de entrada configuradas para expor os serviços à internet nas seguintes portas:
+    *   Porta `22` (SSH): Para controle administrativo e implantação via Git.
+    *   Porta `4000` (GraphQL API): Exposta para comunicação do E-Commerce local.
+    *   Porta `8000` (REST API & Frontend Admin Integrado): Exposta para o painel de gerenciamento.
+    *   Porta `8001` (SOAP API): Exposta para o cliente SOAP remoto.
+    *   Portas `5173` (React) e `4200` (Angular): Expostas opcionalmente para acesso direto aos servidores de desenvolvimento Web.
+*   **User Data Script**: Script Bash de inicialização utilizado na AWS para automatizar a instalação das dependências (Docker, Docker Compose e Git) no primeiro boot da máquina.
 
 ---
 

@@ -1,5 +1,5 @@
 const soap = require('soap');
-const url = 'http://localhost:8001/soap?wsdl';
+const url = 'http://13.61.177.99:8001/soap?wsdl';
 
 console.log('====================================================');
 console.log('🔌 Conectando ao cliente SOAP em:');
@@ -15,6 +15,11 @@ soap.createClient(url, function(err, client) {
   }
 
   console.log('✅ Cliente SOAP conectado com sucesso!');
+  
+  // Sobrescreve o endpoint definido no WSDL (que está fixado como localhost)
+  // para usar o mesmo servidor de onde baixamos o WSDL
+  const endpoint = url.replace('?wsdl', '');
+  client.setEndpoint(endpoint);
   
   // Chamada 1: Somar(35.5, 12.5)
   const argsSomar = { a: 35.5, b: 12.5 };
