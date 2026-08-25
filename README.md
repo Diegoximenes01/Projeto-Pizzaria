@@ -1,152 +1,366 @@
-# 🍕 Furreti Cucina - Ecossistema Full-Stack de Pizzaria
+# 🍕 Furreti Cucina - Ecossistema Full-Stack de Pizzaria & Computação em Nuvem
 
-Este é um projeto acadêmico completo desenvolvido para a cadeira de **Computação em Nuvem**. O ecossistema simula um fluxo de ponta a ponta (end-to-end) para uma pizzaria moderna, combinando múltiplos padrões arquiteturais de comunicação de dados (**GraphQL, REST e SOAP**) e múltiplos frameworks front-end (**React e Angular**), todos conteinerizados em **Docker**.
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS_EC2-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![SOAP](https://img.shields.io/badge/SOAP-WSDL-blue?style=for-the-badge)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Angular](https://img.shields.io/badge/Angular_19-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+Este é um ecossistema **Full-Stack heterogêneo e distribuído** desenvolvido para a disciplina de **Computação em Nuvem**. O projeto simula o fluxo completo de negócios de uma pizzaria moderna (*Furreti Cucina*), combinando **múltiplos paradigmas de comunicação de dados** (GraphQL, REST e SOAP), **diferentes frameworks front-end** (React, Angular 19 e AngularJS 1.x), **banco relacional PostgreSQL** e **conteinerização total via Docker**, com **deploy em produção real na Amazon Web Services (AWS)**.
 
 ---
 
-## 📐 Arquitetura do Sistema
+## 📑 Sumário
 
-O projeto é estruturado em microsserviços e aplicações independentes que se comunicam através de uma rede bridge virtual do Docker:
+- [📐 Arquitetura Geral do Sistema](#-arquitetura-geral-do-sistema)
+- [☁️ Arquitetura de Nuvem (AWS)](#️-arquitetura-de-nuvem-aws)
+- [🛠️ Stack Tecnológica & Distribuição de Componentes](#️-stack-tecnológica--distribuição-de-componentes)
+- [🔌 Mapeamento de Portas e Endpoints](#-mapeamento-de-portas-e-endpoints)
+- [🚀 Microsserviços e Aplicações Detalhadas](#-microsserviços-e-aplicações-detalhadas)
+  - [1. Backend GraphQL (`/backend`)](#1-backend-graphql-backend)
+  - [2. API RESTful & Cliente AngularJS (`/api-restful`)](#2-api-restful--cliente-angularjs-api-restful)
+  - [3. Serviço SOAP & WSDL (`/servico-soap`)](#3-serviço-soap--wsdl-servico-soap)
+  - [4. Frontend E-Commerce em React (`/frontend`)](#4-frontend-e-commerce-em-react-frontend)
+  - [5. Painel Admin em Angular 19 (`/frontend-angular`)](#5-painel-admin-em-angular-19-frontend-angular)
+- [🛡️ Relatório de Segurança e Mitigações](#️-relatório-de-segurança-e-mitigações)
+- [⚡ Testador de Performance e Latência](#-testador-de-performance-e-latência)
+- [☁️ Guia Completo de Deploy na AWS](#️-guia-completo-de-deploy-na-aws)
+- [🚦 Passo a Passo de Execução Local](#-passo-a-passo-de-execução-local)
+- [📂 Estrutura Completa de Diretórios](#-estrutura-completa-de-diretórios)
+
+---
+
+## 📐 Arquitetura Geral do Sistema
+
+O sistema é construído segundo o padrão de microsserviços desacoplados e conteinerizados, comunicando-se através de uma rede bridge virtual customizada do Docker (`pizza_network`).
 
 ```mermaid
 graph TD
-    subgraph Clientes [Clientes - Front-End]
-        ReactApp[React Client App - Port 5173]
-        AngularApp[Angular Admin Dashboard - Port 4200]
-        SOAPClient[SOAP Client - Node.js Script]
+    subgraph Clientes [Camada de Apresentação / Front-End]
+        ReactApp["📱 React E-Commerce App\n(Vite + Apollo Client)\nPorta 5173"]
+        AngularApp["💻 Angular 19 Admin Dashboard\n(Standalone Components)\nPorta 4200"]
+        AngularJSApp["🏛️ AngularJS 1.x Embedded Client\n(Integrado na API REST)\nPorta 8000"]
+        SOAPClient["⚡ SOAP Client Script\n(Node.js Script CLI)"]
     end
 
-    subgraph Servidores [Servidores - Back-End]
-        GraphQLAPI[GraphQL API - FastAPI - Port 4000]
-        RESTAPI[REST API - Express.js - Port 8000]
-        SOAPAPI[SOAP API - Express + WSDL - Port 8001]
+    subgraph Servidores [Camada de Negócio / Back-End Microservices]
+        GraphQLAPI["🚀 GraphQL API\n(FastAPI + Ariadne + Python)\nPorta 4000"]
+        RESTAPI["⚡ RESTful API\n(Express.js + Helmet + RateLimiter)\nPorta 8000"]
+        SOAPAPI["📜 SOAP Calculator API\n(Express.js + WSDL + soap npm)\nPorta 8001"]
     end
 
-    subgraph Persistencia [Persistência]
-        PostgresDB[(PostgreSQL - Port 5433)]
+    subgraph Persistencia [Camada de Dados]
+        PostgresDB[("🐘 PostgreSQL Database\n(Porta Externa 5433 / Interna 5432)")]
     end
 
-    ReactApp -->|GraphQL HTTP POST| GraphQLAPI
-    GraphQLAPI -->|SQL Queries| PostgresDB
-    
-    AngularApp -->|HTTP REST Requests| RESTAPI
-    SOAPClient -->|SOAP XML POST| SOAPAPI
+    ReactApp -->|GraphQL HTTP POST /queries/mutations| GraphQLAPI
+    GraphQLAPI -->|SQL Queries via psycopg2| PostgresDB
+
+    AngularApp -->|HTTP REST JSON /api/pizzas| RESTAPI
+    AngularJSApp -->|Direct REST HTTP| RESTAPI
+
+    SOAPClient -->|SOAP XML Payload /soap| SOAPAPI
 ```
 
 ---
 
-## 🛠️ Stack Tecnológica & Onde Foi Aplicada
+## ☁️ Arquitetura de Nuvem (AWS)
 
-### 1. Front-End
-*   **React (Vite)**: Aplicado no desenvolvimento do **E-Commerce do Cliente** (interface pública de pedidos e carrinho), permitindo navegação fluida de compra e integração reativa de estado com Context API.
-*   **Angular 19 (Standalone)**: Aplicado no **Painel Administrativo da Pizzaria**, servindo como interface de gestão para CRUD de pizzas de forma separada e modular.
-*   **AngularJS (Angular v1.x)**: Aplicado como uma interface administrativa **embutida diretamente no microsserviço da API RESTful** (porta `8000`), demonstrando compatibilidade de tecnologias legadas.
-*   **Apollo Client**: Aplicado na comunicação de dados no React para realizar queries e mutations reativas com o servidor GraphQL.
-*   **Vanilla CSS**: Aplicado na estilização visual premium de todas as interfaces web (React, Angular e AngularJS) usando variáveis CSS e design responsivo sem bibliotecas externas.
+O ambiente de produção foi provisionado na nuvem da **Amazon Web Services (AWS)** com a seguinte topologia de infraestrutura:
 
-### 2. Back-End
-*   **FastAPI & Ariadne (Python)**: Aplicado no **Servidor GraphQL principal** (porta `4000`), responsável pelo gerenciamento de usuários, endereços, cartões de crédito e pedidos transacionais.
-*   **Express.js (Node.js)**: Aplicado na construção da **API RESTful de Pizzas** (porta `8000`) e no **Servidor SOAP da Calculadora** (porta `8001`).
-*   **soap (Biblioteca npm)**: Aplicada no microsserviço SOAP para expor a calculadora de frete/taxas sob demanda por meio de um contrato WSDL estruturado.
-*   **psycopg2-binary**: Aplicado no backend FastAPI para estabelecer queries SQL nativas e de alta performance direto com o banco relacional.
+```mermaid
+graph LR
+    subgraph Internet [Internet / Usuários]
+        UserBrowser[Navegador / Cliente Remoto]
+    end
 
-### 3. Banco de Dados & Infraestrutura
-*   **PostgreSQL**: Banco de dados relacional que persiste as tabelas de Usuários, Pizzas (cardápio), Pedidos e Itens do Pedido.
-*   **Docker & Docker Compose**: Utilizado para containerizar e isolar todos os serviços do back-end (`backend`, `api-restful`, `servico-soap` e `postgres-db`) em uma rede virtual unificada (`pizza_network`), garantindo consistência idêntica entre o desenvolvimento local e a produção.
+    subgraph AWSCloud [AWS Cloud - Instância EC2]
+        subgraph SecurityGroup [Security Group - Firewall Rules]
+            direction TB
+            SG_SSH["Porta 22: SSH Access"]
+            SG_GQL["Porta 4000: GraphQL API"]
+            SG_REST["Porta 8000: REST API & AngularJS"]
+            SG_SOAP["Porta 8001: SOAP API & WSDL"]
+            SG_DB["Porta 5433: PostgreSQL Direct Access"]
+        end
 
-### 4. Nuvem AWS (Implantação Real) ☁️
-Para a cadeira de Computação em Nuvem, realizamos o deploy completo do ecossistema de back-end em produção real na AWS:
-*   **AWS EC2 (Elastic Compute Cloud)**: Provisionamento de um servidor virtual rodando a imagem oficial do **Amazon Linux 2023** (instância `t3.micro`), onde os containers Docker do backend foram implantados.
-*   **AWS EBS (Elastic Block Store)**: Armazenamento persistente de **20 GiB** associado à instância para suportar o sistema operacional, imagens Docker e os dados persistidos do PostgreSQL.
-*   **Security Groups (Firewall da AWS)**: Regras de tráfego de entrada configuradas para expor os serviços à internet nas seguintes portas:
-    *   Porta `22` (SSH): Para controle administrativo e implantação via Git.
-    *   Porta `4000` (GraphQL API): Exposta para comunicação do E-Commerce local.
-    *   Porta `8000` (REST API & Frontend Admin Integrado): Exposta para o painel de gerenciamento.
-    *   Porta `8001` (SOAP API): Exposta para o cliente SOAP remoto.
-    *   Portas `5173` (React) e `4200` (Angular): Expostas opcionalmente para acesso direto aos servidores de desenvolvimento Web.
-*   **User Data Script**: Script Bash de inicialização utilizado na AWS para automatizar a instalação das dependências (Docker, Docker Compose e Git) no primeiro boot da máquina.
+        subgraph EC2Instance [Instância EC2 - Amazon Linux 2023 - t3.micro]
+            IP["Elastic IP: 13.61.177.99"]
+            DockerEngine["Docker Engine & Docker Compose"]
+            
+            subgraph Containers [Docker Containers Containerized Network]
+                C_GQL["pizza_backend (FastAPI)"]
+                C_REST["pizza_rest_api (Express)"]
+                C_SOAP["calculadora_soap_service (Node)"]
+                C_DB["pizza_postgres (Postgres 15)"]
+            end
+            
+            EBSVolume[("EBS Storage Volume\n(20 GiB SSD Persistent Data)")]
+        end
+    end
+
+    UserBrowser -->|SSH Porta 22| SG_SSH
+    UserBrowser -->|HTTP Porta 4000| SG_GQL
+    UserBrowser -->|HTTP Porta 8000| SG_REST
+    UserBrowser -->|HTTP Porta 8001| SG_SOAP
+
+    SG_SSH --> DockerEngine
+    SG_GQL --> C_GQL
+    SG_REST --> C_REST
+    SG_SOAP --> C_SOAP
+    
+    C_GQL --> C_DB
+    C_DB --- EBSVolume
+```
 
 ---
 
-## 📂 Estrutura de Diretórios
+## 🛠️ Stack Tecnológica & Distribuição de Componentes
 
-*   [`/backend`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/backend): API GraphQL em Python, arquivos de esquema e scripts de semeadura do banco de dados.
-*   [`/api-restful`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/api-restful): API REST em Express para gerenciamento de pizzas e seu respectivo cliente web embutido.
-*   [`/servico-soap`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/servico-soap): Serviço SOAP de calculadora e script cliente para chamadas XML.
-*   [`/frontend`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/frontend): Aplicação React do e-commerce do cliente.
-*   [`/frontend-angular`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/frontend-angular): Painel do administrador em Angular para CRUD de pizzas.
-*   [`/deploy-nuvem`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/deploy-nuvem): Instruções passo a passo de deploy e infraestrutura na nuvem AWS.
+### 1. Front-End (Três Tecnologias Distintas)
+- **React (Vite)**: Desenvolvido para a interface pública do cliente (**E-Commerce**). Utiliza **Apollo Client** para comunicação reativa via GraphQL e **Context API** para gerenciamento do carrinho de compras.
+- **Angular 19 (Standalone Components)**: Desenvolvido para o **Painel Administrativo da Pizzaria**. Interface moderna e reativa para operações de CRUD de pizzas consumindo a API REST.
+- **AngularJS (v1.x)**: Aplicação web legado embutida na pasta `public/` da API RESTful (porta `8000`), demonstrando convivência com aplicações legadas.
+- **Vanilla CSS**: Estilização rica com modo escuro, gradientes dinâmicos, glassmorphism e animações suaves em todos os front-ends sem dependências de frameworks CSS externos.
+
+### 2. Back-End (Três Paradigmas Arquiteturais)
+- **FastAPI & Ariadne (Python 3.11+)**: Servidor **GraphQL** principal (porta `4000`). Gerencia Usuários, Endereços, Cartões de Crédito, Pedidos e Cardápio com schema estritamente tipado.
+- **Express.js (Node.js)**: Servidor da **API RESTful** de Pizzas (porta `8000`), provendo endpoints JSON estruturados com middlewares de segurança.
+- **Express.js + `soap` npm**: Servidor **SOAP** (porta `8001`) expondo contrato WSDL (`calculadora.wsdl`) com operações XML de soma e subtração utilizadas no cálculo de fretes e cupons.
+
+### 3. Persistência de Dados & Infraestrutura
+- **PostgreSQL 15 Alpine**: Banco de dados relacional que persiste todas as entidades da aplicação com integridade referencial.
+- **Docker & Docker Compose**: Isolamento e orquestração de 4 containers em rede bridge (`pizza_network`), garantindo reprodutibilidade total entre dev local e AWS.
 
 ---
 
-## 🚦 Passo a Passo para Execução do Projeto
+## 🔌 Mapeamento de Portas e Endpoints
+
+| Serviço / Container | Tecnologia | Porta Host | Porta Container | Descrição / Endpoints Principais |
+| :--- | :--- | :---: | :---: | :--- |
+| `pizza_backend` | FastAPI (Python) | `4000` | `4000` | GraphQL Endpoint: `http://localhost:4000/graphql` |
+| `pizza_rest_api` | Express.js (Node.js) | `8000` | `8000` | REST API: `http://localhost:8000/api/pizzas`<br>Cliente AngularJS: `http://localhost:8000/` |
+| `calculadora_soap_service` | Express + WSDL | `8001` | `8001` | WSDL Endpoint: `http://localhost:8001/soap?wsdl` |
+| `pizza_postgres` | PostgreSQL 15 | `5433` | `5432` | Database Connection: `postgresql://pizza_user:pizza_pass@localhost:5433/pizza_db` |
+| `frontend` | React + Vite | `5173` | Local | E-Commerce Web Client: `http://localhost:5173/` |
+| `frontend-angular` | Angular 19 | `4200` | Local | Admin Dashboard: `http://localhost:4200/` |
+
+---
+
+## 🚀 Microsserviços e Aplicações Detalhadas
+
+### 1. Backend GraphQL (`/backend`)
+- **Tecnologias**: Python 3.11+, FastAPI, Ariadne (Schema-First GraphQL), `psycopg2-binary`.
+- **Funcionalidades**:
+  - `schema.graphql`: Define tipos como `Usuario`, `Endereco`, `CartaoCredito`, `Pizza`, `Pedido`, `ItemPedido` e enum `StatusPedido`.
+  - Resolvedores em `resolvedores.py` suportando Queries (`obterPizzas`, `obterPizzasAtivas`, `obterPedidos`, etc.) e Mutations (`criarUsuario`, `criarPedido`, `adicionarItemAoPedido`, etc.).
+  - `semeador.py`: Script para povoamento automático de dados de demonstração no PostgreSQL.
+
+### 2. API RESTful & Cliente AngularJS (`/api-restful`)
+- **Tecnologias**: Node.js, Express.js, Helmet, Express-Rate-Limit, AngularJS 1.x.
+- **Endpoints REST**:
+  - `GET /api/pizzas`: Lista todas as pizzas cadastradas.
+  - `POST /api/pizzas`: Cadastra nova pizza (com sanitização e validação de limite de caracteres).
+  - `PUT /api/pizzas/:id`: Atualiza pizza existente.
+  - `DELETE /api/pizzas/:id`: Remove pizza por ID.
+- **Cliente Embutido**: Servido em `http://localhost:8000/` permitindo visualizar e cadastrar pizzas via interface AngularJS.
+
+### 3. Serviço SOAP & WSDL (`/servico-soap`)
+- **Tecnologias**: Node.js, Express.js, `soap` npm library.
+- **Contrato WSDL**: `calculadora.wsdl` definindo o serviço `CalculadoraService` e a porta `CalculadoraPort`.
+- **Operações**:
+  - `Somar`: Recebe `<a` e `<b`, retorna `<resultado`.
+  - `Subtrair`: Recebe `<a` e `<b`, retorna `<resultado`.
+- **Cliente CLI (`client.js`)**: Script Node.js que realiza chamadas XML para testar o serviço remotamente via linha de comando.
+
+### 4. Frontend E-Commerce em React (`/frontend`)
+- **Tecnologias**: React 18, Vite, Apollo Client (`@apollo/client`).
+- **Recursos**: Cardápio interativo, filtro por categoria, inclusão no carrinho, seleção de método de pagamento (Cartão/PIX), visualizador de pedidos em tempo real.
+
+### 5. Painel Admin em Angular 19 (`/frontend-angular`)
+- **Tecnologias**: Angular 19, TypeScript, RxJS, HttpClientModule.
+- **Recursos**: Painel administrativo para cadastro, edição, alteração de preços, ativação/desativação e exclusão de pizzas consumindo a API RESTful.
+
+---
+
+## 🛡️ Relatório de Segurança e Mitigações
+
+A segurança da **API RESTful** foi auditada e endurecida com as seguintes mitigações (documentadas detalhadamente em [`relatorio-seguranca.md`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/relatorio-seguranca.md)):
+
+1. **Proteção contra DoS e Brute Force (Rate Limiting)**:
+   - Middleware `express-rate-limit` ativado na rota `/api/`.
+   - Limite estrito de **100 requisições a cada 15 minutos por IP**. Resposta HTTP `429 Too Many Requests` ao exceder.
+2. **Proteção de Cabeçalhos & Remoção de Identificação de Stack (Helmet)**:
+   - Remoção do cabeçalho `X-Powered-By: Express`.
+   - Inclusão de cabeçalhos de segurança padrão (`X-Frame-Options`, `X-Content-Type-Options`, `Content-Security-Policy`).
+3. **Prevenção contra Stored XSS e DoS de Armazenamento**:
+   - Função auxiliar `sanitizeInput()` converte caracteres HTML especiais (`<`, `>`, `&`, `"`, `'`) em entidades seguras.
+   - Limite de caracteres: `nome` (máx. 50 chars), `ingredientes` (máx. 200 chars) e `preco` (numérico positivo < 1000).
+
+---
+
+## ⚡ Testador de Performance e Latência
+
+O projeto conta com um script automatizado de benchmarking de estresse e latência ([`performance_test.js`](file:///c:/Users/diego/OneDrive/Documentos/Faculdade/Cadeira%20Nuvem/performance_test.js)):
+
+- **Metodologia**: Executa 50 requisições simultâneas sequenciais com intervalo de 10ms para comparar a resposta dos servidores na AWS.
+- **Execução**:
+  ```bash
+  node performance_test.js
+  ```
+- **Métricas Analisadas**: Taxa de sucesso (%), Latência Mínima (ms), Latência Máxima (ms) e Latência Média (ms).
+
+---
+
+## ☁️ Guia Completo de Deploy na AWS
+
+O deploy da infraestrutura de back-end foi concluído com sucesso em uma instância **AWS EC2** (Amazon Linux 2023, `t3.micro`) no IP **`13.61.177.99`**.
+
+### Conexão SSH
+```powershell
+ssh -i "C:\Users\diego\OneDrive\Documentos\Faculdade\pizzaria-chave.pem" ec2-user@13.61.177.99
+```
+
+### Comandos de Deploy Executados na EC2
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/Diegoximenes01/Projeto-Pizzaria.git
+
+# 2. Acessar a pasta
+cd Projeto-Pizzaria
+
+# 3. Inicializar os microsserviços via Docker
+docker-compose up -d
+```
+
+### Comandos de Monitoramento para Apresentação
+```bash
+# Verificar status dos containers ativos
+docker ps
+
+# Acompanhar logs unificados em tempo real
+docker-compose logs -f --tail=20
+
+# Verificar consumo de memória RAM e Swap
+free -h
+
+# Verificar uso de disco EBS
+df -h
+```
+
+---
+
+## 🚦 Passo a Passo de Execução Local
 
 ### Pré-requisitos
-*   [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e rodando.
-*   [Node.js (versão 18+)](https://nodejs.org/) instalado para executar os front-ends localmente.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e rodando.
+- [Node.js (v18+)](https://nodejs.org/) instalado.
 
 ---
 
-### Passo 1: Subir a Infraestrutura Geral (Back-End + PostgreSQL)
-Abra um terminal na raiz do projeto e execute:
+### Passo 1: Subir os Containers do Back-End & Banco de Dados
+Na raiz do projeto, execute:
 ```bash
 docker-compose up -d
 ```
-*Este comando baixa a imagem do Postgres, compila os Dockerfiles dos servidores Node e Python, e ativa todos os containers na rede bridge interna.*
-
-Para verificar se tudo subiu corretamente:
+Verifique o status com:
 ```bash
 docker ps
 ```
-Você verá 4 containers rodando (`pizza_backend`, `pizza_rest_api`, `calculadora_soap_service`, `pizza_postgres`).
+*Deve listar 4 containers ativos: `pizza_backend`, `pizza_rest_api`, `calculadora_soap_service`, e `pizza_postgres`.*
 
 ---
 
-### Passo 2: Executar o E-Commerce Principal (React)
-Abra um novo terminal na pasta `/frontend` e execute:
+### Passo 2: Executar o E-Commerce React
+Em um novo terminal:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-O site do cliente estará disponível em: **[http://localhost:5173/](http://localhost:5173/)**
+Acesse no navegador: **[http://localhost:5173/](http://localhost:5173/)**
 
 ---
 
-### Passo 3: Executar o Painel de Administração (Angular)
-Abra um novo terminal na pasta `/frontend-angular` e execute:
+### Passo 3: Executar o Painel Admin Angular
+Em um novo terminal:
 ```bash
 cd frontend-angular
 npm install
 npm start
 ```
-O painel do administrador estará disponível em: **[http://localhost:4200/](http://localhost:4200/)**
+Acesse no navegador: **[http://localhost:4200/](http://localhost:4200/)**
 
 ---
 
-### Passo 4: Executar os Testes do Serviço SOAP
-O serviço SOAP roda no Docker na porta `8001`. Para realizar chamadas diretas de soma/subtração utilizando o cliente Node.js:
-1. Abra um terminal na pasta `/servico-soap`.
-2. Instale as dependências locais se necessário e execute:
-   ```bash
-   node client.js
-   ```
-O terminal fará a conversão XML SOAP de ida e volta e imprimirá os resultados da calculadora remota.
+### Passo 4: Executar o Cliente SOAP
+Em um novo terminal:
+```bash
+cd servico-soap
+node client.js
+```
+O console exibirá as respostas das chamadas XML de soma e subtração enviadas ao servidor.
 
 ---
 
-### Passo 5: Executar Teste de Performance e Latência
-Existe um testador de estresse e latência na raiz do projeto. Ele dispara 50 requisições simultâneas para as APIs para comparar o tempo de resposta:
+### Passo 5: Executar o Teste de Performance
+Na raiz do projeto:
 ```bash
 node performance_test.js
 ```
-O resultado será exibido em uma tabela comparativa organizada no console.
 
 ---
 
-## 🛡️ Decisões Arquiteturais & Segurança
-*   **Interoperabilidade de Tecnologias**: O uso de GraphQL em Python no app principal e REST/SOAP em Node.js nos demais simula o ambiente real de grandes corporações que herdaram ou integram microsserviços legados.
-*   **Segurança de Borda na API REST**:
-    *   **Helmet**: Adiciona cabeçalhos contra ataques XSS e Clickjacking.
-    *   **Rate Limiter**: Limita acessos repetidos por IP (máximo de 100 requisições/15min) prevenindo sobrecarga e força bruta.
-    *   **Sanitização de Payload**: Tratamento rigoroso de caracteres HTML para impedir injeção persistente de scripts maliciosos (Stored XSS).
+## 📂 Estrutura Completa de Diretórios
+
+```text
+Projeto-Pizzaria/
+├── api-restful/                  # Microsserviço RESTful (Express.js)
+│   ├── public/                   # Cliente Web AngularJS embutido & imagens das pizzas
+│   │   ├── index.html            # Interface web AngularJS
+│   │   └── ...                   # Imagens assets das pizzas e bebidas
+│   ├── Dockerfile                # Dockerfile da API RESTful
+│   ├── package.json              # Dependências (Express, Helmet, Rate-Limit)
+│   └── server.js                 # Servidor Express, rotas /api/pizzas e sanitização
+├── backend/                      # Microsserviço GraphQL (FastAPI & Ariadne)
+│   ├── codigo/
+│   │   ├── graphql_api/
+│   │   │   ├── resolvedores.py   # Query e Mutation resolvers
+│   │   │   └── schema.graphql    # Esquema estrito do GraphQL
+│   │   ├── banco.py              # Conexão e queries com o PostgreSQL
+│   │   ├── principal.py          # Entrypoint da aplicação FastAPI
+│   │   └── semeador.py           # População inicial de dados no banco
+│   ├── Dockerfile                # Dockerfile do Backend Python
+│   └── requirements.txt          # Dependências Python (fastapi, uvicorn, ariadne, psycopg2)
+├── deploy-nuvem/                 # Documentação e guias de implantação AWS
+│   └── README.md                 # Guia detalhado de deploy (EC2, App Runner, Beanstalk)
+├── frontend/                     # Cliente E-Commerce React (Vite + Apollo)
+│   ├── codigo/                   # Componentes React, Páginas, Contextos e Apollo Client
+│   ├── index.html                # Entrypoint HTML do React
+│   ├── package.json              # Dependências React & Apollo
+│   └── vite.config.js            # Configuração do Vite (Porta 5173)
+├── frontend-angular/             # Painel Administrativo Angular 19
+│   ├── src/                      # Componentes Standalone, Serviços HTTP e HTML/CSS
+│   ├── angular.json              # Configurações do projeto Angular (Porta 4200)
+│   └── package.json              # Dependências Angular 19
+├── servico-soap/                 # Microsserviço SOAP da Calculadora (Express + WSDL)
+│   ├── calculadora.wsdl          # Contrato de serviço SOAP WSDL
+│   ├── client.js                 # Cliente Node.js para consumir o SOAP via XML
+│   ├── Dockerfile                # Dockerfile do Serviço SOAP
+│   └── server.js                 # Servidor Express + soap npm (Porta 8001)
+├── docker-compose.yml            # Orquestração dos 4 containers Docker na pizza_network
+├── performance_test.js           # Benchmark de estresse e latência (50 execuções)
+├── README.md                     # Documentação principal do projeto
+└── relatorio-seguranca.md        # Relatório de auditoria e correções de segurança
+```
+
+---
+
+## 👥 Autor
+
+- **Diego Ximenes** - [*@Diegoximenes01*](https://github.com/Diegoximenes01)
+- Projeto desenvolvido para a cadeira de **Computação em Nuvem**.
